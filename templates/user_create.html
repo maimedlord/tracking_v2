@@ -1,0 +1,22 @@
+{% extends 'init.html' %}
+{% block title %}
+    <title>tracking v2 - create user</title>
+{% endblock %}
+{% block css %}
+{#    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_create.css') }}">#}
+{% endblock %}
+{% block body %}
+    <div id="test_main">
+        <form id="form_user_create" name="form_user_create" method="post">
+            <input autocomplete="off" class="text_input" id="input_user_name" maxlength="20" minlength="2" name="input_user_name" placeholder="username..." required size="50" type="text">
+            <br><br>
+            <input autocomplete="off" class="text_input" id="input_user_email" maxlength="50" minlength="6" name="input_user_email" placeholder="email..." required size="50" type="email">
+            <br><br>
+            <input autocomplete="off" class="text_input" id="input_user_password_1" maxlength="32" minlength="20" name="input_user_password_1" placeholder="password..." required size="50" type="password">
+            <br><br>
+            <input autocomplete="off" class="text_input" id="input_user_password_2" maxlength="32" minlength="20" name="input_user_password_2" placeholder="retype password..." required size="50" type="password">
+            <br><br>
+            <button type="submit">create</button>
+        </form>
+    </div>
+{% endblock %}
