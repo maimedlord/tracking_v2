@@ -1,0 +1,80 @@
+{
+  $jsonSchema: {
+    bsonType: 'object',
+    required: [
+      'active',
+      'confirmed',
+      'dateCreated',
+      'email',
+      'passwordHash',
+      'userLog',
+      'userName'
+    ],
+    properties: {
+      active: {
+        bsonType: 'bool',
+        description: 'user: active: bool'
+      },
+      confirmed: {
+        bsonType: 'bool',
+        description: 'user: confirmed: bool'
+      },
+      dateCreated: {
+        bsonType: 'date',
+        description: 'user: dateCreated: date'
+      },
+      email: {
+        bsonType: 'string',
+        description: 'user: email: string'
+      },
+      passwordHash: {
+        bsonType: 'string',
+        description: 'user: passwordHash: string'
+      },
+      userLog: {
+        bsonType: 'array',
+        description: 'user: userLog: array[logEvent]',
+        minItems: 1,
+        items: {
+          bsonType: 'object',
+          description: 'user: userLog: array[logEvent]: logEvent object',
+          required: [
+            'logCode',
+            'logDate',
+            'logMessage',
+            'logTags'
+          ],
+          properties: {
+            logCode: {
+              bsonType: 'int',
+              description: 'user: userLog: array[logEvent]: logCode: int'
+            },
+            logdate: {
+              bsonType: 'date',
+              description: 'user: userLog: array[logEvent]: logCode: date'
+            },
+            logMessage: {
+              bsonType: 'string',
+              description: 'user: userLog: array[logEvent]: logMessage: string'
+            },
+            logTags: {
+              bsonType: [
+                'array',
+                'null'
+              ],
+              description: 'user: userLog: array[logEvent]: logTags[string], null',
+              items: {
+                bsonType: 'string',
+                description: 'user: userLog: array[logEvent]: logTags[string], null: tag: string'
+              }
+            }
+          }
+        }
+      },
+      userName: {
+        bsonType: 'string',
+        description: 'user: userName: string'
+      }
+    }
+  }
+}

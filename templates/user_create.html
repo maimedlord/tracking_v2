@@ -6,15 +6,25 @@
 {#    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_create.css') }}">#}
 {% endblock %}
 {% block body %}
+    {% if err_messages %}
+        <div id="err_messages_container">
+{#            {{ err_messages | length }}#}
+            {% for message in err_messages %}
+                <div class="err_message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
     <div id="test_main">
         <form id="form_user_create" name="form_user_create" method="post">
-            <input autocomplete="off" class="text_input" id="input_user_name" maxlength="20" minlength="2" name="input_user_name" placeholder="username..." required size="50" type="text">
+            <input autocomplete="on" autofocus class="text_input" id="input_user_username" maxlength="20" minlength="2" name="input_user_username" placeholder="username..." required size="50" type="text">
             <br><br>
-            <input autocomplete="off" class="text_input" id="input_user_email" maxlength="50" minlength="6" name="input_user_email" placeholder="email..." required size="50" type="email">
+            <input autocomplete="on" class="text_input" id="input_user_email" maxlength="50" minlength="6" name="input_user_email" placeholder="email..." required size="50" type="email">
             <br><br>
-            <input autocomplete="off" class="text_input" id="input_user_password_1" maxlength="32" minlength="20" name="input_user_password_1" placeholder="password..." required size="50" type="password">
+            <input autocomplete="on" class="text_input" id="input_user_password_1" maxlength="32" minlength="12" name="input_user_password_1" placeholder="password..." required size="50" type="password">
             <br><br>
-            <input autocomplete="off" class="text_input" id="input_user_password_2" maxlength="32" minlength="20" name="input_user_password_2" placeholder="retype password..." required size="50" type="password">
+            <input autocomplete="on" class="text_input" id="input_user_password_2" maxlength="32" minlength="12" name="input_user_password_2" placeholder="retype password..." required size="50" type="password">
             <br><br>
             <button type="submit">create</button>
         </form>

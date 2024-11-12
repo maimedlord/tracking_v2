@@ -1,0 +1,33 @@
+{% extends 'init.html' %}
+{% block title %}
+    <title>tracking v2 - login</title>
+{% endblock %}
+{% block css %}
+{#    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">#}
+{% endblock %}
+{% block body %}
+    {% if err_messages %}
+        <div id="err_messages_container">
+{#            {{ err_messages | length }}#}
+            {% for message in err_messages %}
+                <div class="err_message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if usr_message %}
+        <div id="usr_message">
+            {{ usr_message }}
+        </div>
+    {% endif %}
+    <div>
+        <form id="form_login" method="post" name="login">
+            <input autocomplete="on" autofocus id="input_email" maxlength="50" minlength="6" name="input_email" placeholder="email..." required size="50" type="email">
+            <br><br>
+            <input autocomplete="on" id="input_password" maxlength="32" minlength="12" name="input_password" placeholder="password..." required size="50" type="password">
+            <br><br>
+            <button type="submit">log in</button>
+        </form>
+    </div>
+{% endblock %}

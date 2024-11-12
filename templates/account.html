@@ -1,0 +1,17 @@
+{% extends 'init.html' %}
+{% block title %}
+    <title>tracking v2 - account</title>
+{% endblock %}
+{% block css %}
+{#    <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">#}
+{% endblock %}
+{% block body %}
+    {{ current_user_id }}
+    {# for when user has just created their account and they are sent here with usr_message saved to
+    server session storage #}
+    {% if usr_message %}
+        <div>
+            {{ usr_message }}
+        </div>
+    {% endif %}
+{% endblock %}

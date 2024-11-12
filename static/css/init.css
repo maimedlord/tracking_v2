@@ -2,6 +2,12 @@ body {
     height: 100%;
     width: 100%;
 }
+.err_message {
+
+}
+#err_messages_container {
+
+}
 #test_main {
     align-items: center;
     display: flex;
