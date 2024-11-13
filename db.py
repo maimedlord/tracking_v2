@@ -1,3 +1,5 @@
+import json
+
 from bson.objectid import ObjectId
 from datetime import datetime, timezone
 
@@ -86,6 +88,18 @@ def note_update(user_id_str: str, note_id_str: str, note_obj: dict) -> bool:
         print(str(e))
         utility.log_write(str(e))
         return False
+
+
+# RETURN None if error or no docs || list of all docs if exist
+def notes_get_all(user_id_str: str):
+    collection = db_notes[user_id_str]
+    response = collection.find()
+    if response:
+        # convert all ObjectId's to strings
+        for note in response:
+            note['_id'] = str(note['_id'])
+        return list(response)
+    return None
 
 
 # RETURN None
@@ -222,6 +236,8 @@ def user_is_email_exists(email):
 
 # TESTING
 if __name__ == '__main__':
+    # print(notes_get_all('67327892c32490cdcec4ff2b'))
+
     # print(note_create('67327892c32490cdcec4ff2b',{
     #     'dateCreated': datetime.now(timezone.utc),
     #     'title': 'the title of the note',
@@ -235,9 +251,22 @@ if __name__ == '__main__':
     #     'text': 'text of de note my boy'
     # }))
     # print(note_delete('67327892c32490cdcec4ff2b', '6733f09710745e9c7d549d30'))
-    print('the note update was: ' + str(note_update('67327892c32490cdcec4ff2b', '6733fbf412982d5587dca55b', {
-        'title': 'this title has been updated!',
-        'location': 'location as string UPDATED UPDATEDUPDATEDUPDATEDUPDATEDUPDATED',
-        'tags': ['tag1', 'tag2', 'TAG3'],
-        'text': 'text of de note my boy UPDATED!'
-    })))
+    # print('the note update was: ' + str(note_update('67327892c32490cdcec4ff2b', '6733fbf412982d5587dca55b', {
+    #     'title': 'this title has been updated!',
+    #     'location': 'location as string UPDATED UPDATEDUPDATEDUPDATEDUPDATEDUPDATED',
+    #     'tags': ['tag1', 'tag2', 'TAG3'],
+    #     'text': 'text of de note my boy UPDATED!'
+    # })))
+    print(json.dumps({
+        'dateCreated': datetime.now(timezone.utc),
+        'title': 'the title of the note',
+        'location': 'location as string',
+        'noteLog': [{
+            'logDate': datetime.now(timezone.utc),
+            'logCode': 0,
+            'logMessage': 'note first created'
+        }],
+        'tags': ['tag1', 'tag2'],
+        'text': 'text of de note my boy'
+    }))
+    pass

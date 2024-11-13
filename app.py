@@ -1,5 +1,8 @@
 import json
 from datetime import datetime
+
+from bson import ObjectId
+
 import db
 from flask import abort, Flask, redirect, render_template, request, session, url_for
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
@@ -151,12 +154,34 @@ def user_create():
 
 
 # API routes
+# HERE NEED TO CONVERT OBJECTIDS AND DATES TO STRINGS BEFORE JSON.DUMPS...
 @app.route('/api/note_create/<note_obj>', methods=['GET', 'POST'])
 @login_required
-def note_create(note_obj):
+def api_note_create(note_obj):
     try:
-        pass
+        response = db.notes_get_all(current_user.id_str)
+        if response:
+            return json.dumps({
+                'status': 'success',
+                'status_code': 200,
+                'data': response
+            })
+        return json.dumps({
+            'status': 'fail',
+            'status_code': 204,
+            'data': 'Failed to retrieve notes...'
+        })
     except Exception as e:
         print(str(e))
         utility.log_write(str(e))
-        return redirect(url_for('error_page'))
+        return json.dumps({
+            'status': 'fail',
+            'status_code': 400,
+            'data': 'There was a server failure...'
+        })
+
+# TESTING
+# if __name__ == '__main__':
+#     # temp = db.notes_get_all('67327892c32490cdcec4ff2b')
+#     # print(json.dumps(temp))
+#     pass
