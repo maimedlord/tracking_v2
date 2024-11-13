@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from flask import Response
 from pymongo import MongoClient
 
-import utility
+import utility # shrink what is accessed from this library
 from user import User
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -75,14 +75,16 @@ def note_update(user_id_str: str, note_id_str: str, note_obj: dict) -> bool:
         if not response.acknowledged:
             raise Exception('Unable to update userLog with new logEvent')
         # check size of userLog and pop oldest element if too many elements
-        response = list(collection.aggregate([
+        response = collection.aggregate([
             {'$match': {'_id': ObjectId(note_id_str)}},
             {'$project': {'_id': 0, 'noteLog_size': {'$size': '$noteLog'}}}
-        ]))
-        if response and response[0]['noteLog_size'] > noteLog_num_elements:
-            response = collection.update_one({'_id': ObjectId(note_id_str)}, {'$pop': {'noteLog': -1}})
-            if not response.acknowledged:
-                raise Exception('Unable to update noteLog by popping earliest logEvent')
+        ])
+        if response:
+            response = list(response)
+            if len(response) > 0 and response[0]['noteLog_size'] > noteLog_num_elements:
+                response = collection.update_one({'_id': ObjectId(note_id_str)}, {'$pop': {'noteLog': -1}})
+                if not response.acknowledged:
+                    raise Exception('Unable to update noteLog by popping earliest logEvent')
         return True
     except Exception as e:
         print(str(e))
@@ -95,9 +97,6 @@ def notes_get_all(user_id_str: str):
     collection = db_notes[user_id_str]
     response = collection.find()
     if response:
-        # convert all ObjectId's to strings
-        for note in response:
-            note['_id'] = str(note['_id'])
         return list(response)
     return None
 
@@ -257,16 +256,16 @@ if __name__ == '__main__':
     #     'tags': ['tag1', 'tag2', 'TAG3'],
     #     'text': 'text of de note my boy UPDATED!'
     # })))
-    print(json.dumps({
-        'dateCreated': datetime.now(timezone.utc),
-        'title': 'the title of the note',
-        'location': 'location as string',
-        'noteLog': [{
-            'logDate': datetime.now(timezone.utc),
-            'logCode': 0,
-            'logMessage': 'note first created'
-        }],
-        'tags': ['tag1', 'tag2'],
-        'text': 'text of de note my boy'
-    }))
+    # print(json.dumps(utility.convert_datetimes_to_string({
+    #     'dateCreated': datetime.now(timezone.utc),
+    #     'title': 'the title of the note',
+    #     'location': 'location as string',
+    #     'noteLog': [{
+    #         'logDate': datetime.now(timezone.utc),
+    #         'logCode': 0,
+    #         'logMessage': 'note first created'
+    #     }],
+    #     'tags': ['tag1', 'tag2'],
+    #     'text': 'text of de note my boy'
+    # })))
     pass

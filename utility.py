@@ -1,3 +1,4 @@
+from bson import ObjectId
 from flask import request
 import re
 from datetime import datetime, timezone
@@ -8,6 +9,31 @@ log_path: str = 'C:/Users/liste/PycharmProjects/tracking_v2/logs/tracking_v2_log
 
 # other variables
 date_format: str = '%Y-%m-%dT%H:%M:%S' # 2024-10-10T11:05:55
+
+# RETURN object
+# recursively changes datetime objects to strings
+def convert_datetimes_to_string(obj) -> object:
+    if isinstance(obj, datetime):
+        return obj.strftime(date_format)  # Convert datetime to string in desired format
+    elif isinstance(obj, dict):  # If it's a dictionary, process each value
+        for key, value in obj.items():
+            obj[key] = convert_datetimes_to_string(value)  # Update with converted value
+    elif isinstance(obj, (list, tuple, set)):  # If it's a list, tuple, or set, iterate and update
+        obj = type(obj)(convert_datetimes_to_string(item) for item in obj)
+    return obj
+
+
+# RETURN object
+# recursively changes ObjectId objects to strings
+def convert_objectids_to_string(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)  # Convert ObjectId to string
+    elif isinstance(obj, dict):  # If it's a dictionary, process each value
+        for key, value in obj.items():
+            obj[key] = convert_objectids_to_string(value)  # Update with converted value
+    elif isinstance(obj, (list, tuple, set)):  # If it's a list, tuple, or set, iterate and update
+        obj = type(obj)(convert_objectids_to_string(item) for item in obj)
+    return obj
 
 
 # RETURN True if danger chars found | False if no danger chars found

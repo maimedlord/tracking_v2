@@ -154,13 +154,14 @@ def user_create():
 
 
 # API routes
-# HERE NEED TO CONVERT OBJECTIDS AND DATES TO STRINGS BEFORE JSON.DUMPS...
-@app.route('/api/note_create/<note_obj>', methods=['GET', 'POST'])
+@app.route('/api/api_notes_get_all')
 @login_required
-def api_note_create(note_obj):
+def api_notes_get_all():
     try:
         response = db.notes_get_all(current_user.id_str)
         if response:
+            response = utility.convert_datetimes_to_string(response) # convert datetime to string
+            response = utility.convert_objectids_to_string(response) # convert ObjectId to string
             return json.dumps({
                 'status': 'success',
                 'status_code': 200,
