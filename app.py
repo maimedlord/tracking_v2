@@ -94,7 +94,7 @@ def logout():
     try:
         user_id: str = current_user.id_str
         logout_user()
-        db.update_userLog(key=user_id, logCode=0, logMessage='used logged out', logTags=[
+        db.user_update_userLog(key=user_id, logCode=0, logMessage='used logged out', logTags=[
             'user',
             'logged-out',
             'user'
