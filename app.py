@@ -1,10 +1,12 @@
 import json
+# from crypt import methods
 from datetime import datetime
 
 from bson import ObjectId
 
 import db
 from flask import abort, Flask, redirect, render_template, request, session, url_for
+from flask_cors import CORS
 from flask_login import LoginManager, current_user, login_user, login_required, logout_user
 from flask_session import Session # not using this...
 import re
@@ -12,6 +14,7 @@ from urllib.parse import urlparse, urljoin
 import utility
 from werkzeug.security import generate_password_hash
 
+from config import http_500, http_204
 from db import c_users
 from utility import log_write
 
@@ -20,6 +23,7 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 Session(app)
+# CORS(app, resources={r"/api/*": {"origins": "*"}}) # will need this for APIs to work with non-local resources
 
 # ...
 login_mgr = LoginManager()
@@ -153,33 +157,66 @@ def user_create():
         return redirect(url_for('error_page'))
 
 
-# API routes
-@app.route('/api/api_notes_get_all')
+## API routes
+@app.route('/api/note_delete/<note_id>')
+@login_required
+def note_delete(note_id):
+    try:
+        response = db.note_delete(current_user.id_str, note_id)
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'status_code': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+@app.route('/api/note_update/<note_obj>')
+@login_required
+def api_note_update(note_obj):
+    try:
+        pass
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/notes')
+# @login_required
+def notes():
+    return render_template('notes.html')
+
+
+# confirmed working 24/11/13
+@app.route('/api/notes_get_all', methods=['GET', 'POST'])
 @login_required
 def api_notes_get_all():
     try:
         response = db.notes_get_all(current_user.id_str)
+        # if other than None or empty list response has notes
         if response:
-            response = utility.convert_datetimes_to_string(response) # convert datetime to string
-            response = utility.convert_objectids_to_string(response) # convert ObjectId to string
+            response = utility.convert_datetimes_to_string(response) # convert datetime to string recursively
+            response = utility.convert_objectids_to_string(response) # convert ObjectId to string recursively
             return json.dumps({
                 'status': 'success',
                 'status_code': 200,
                 'data': response
             })
-        return json.dumps({
-            'status': 'fail',
-            'status_code': 204,
-            'data': 'Failed to retrieve notes...'
-        })
+        # handle empty list
+        if isinstance(response, list):
+            return json.dumps(http_204)
+        # None indicates error
+        return json.dumps(http_500)
     except Exception as e:
         print(str(e))
         utility.log_write(str(e))
-        return json.dumps({
-            'status': 'fail',
-            'status_code': 400,
-            'data': 'There was a server failure...'
-        })
+        return json.dumps(http_500)
 
 # TESTING
 # if __name__ == '__main__':

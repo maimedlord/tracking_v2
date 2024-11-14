@@ -93,6 +93,7 @@ def note_update(user_id_str: str, note_id_str: str, note_obj: dict) -> bool:
 
 
 # RETURN None if error or no docs || list of all docs if exist
+# confirmed working 24/11/13
 def notes_get_all(user_id_str: str):
     collection = db_notes[user_id_str]
     response = collection.find()
@@ -237,18 +238,18 @@ def user_is_email_exists(email):
 if __name__ == '__main__':
     # print(notes_get_all('67327892c32490cdcec4ff2b'))
 
-    # print(note_create('67327892c32490cdcec4ff2b',{
-    #     'dateCreated': datetime.now(timezone.utc),
-    #     'title': 'the title of the note',
-    #     'location': 'location as string',
-    #     'noteLog': [{
-    #         'logDate': datetime.now(timezone.utc),
-    #         'logCode': 0,
-    #         'logMessage': 'note first created'
-    #     }],
-    #     'tags': ['tag1', 'tag2'],
-    #     'text': 'text of de note my boy'
-    # }))
+    print(note_create('67327892c32490cdcec4ff2b',{
+        'dateCreated': datetime.now(timezone.utc),
+        'title': 'the title of the note',
+        'location': 'location as string',
+        'noteLog': [{
+            'logDate': datetime.now(timezone.utc),
+            'logCode': 0,
+            'logMessage': 'note first created'
+        }],
+        'tags': ['tag1', 'tag2'],
+        'text': 'text of de note my boy'
+    }))
     # print(note_delete('67327892c32490cdcec4ff2b', '6733f09710745e9c7d549d30'))
     # print('the note update was: ' + str(note_update('67327892c32490cdcec4ff2b', '6733fbf412982d5587dca55b', {
     #     'title': 'this title has been updated!',

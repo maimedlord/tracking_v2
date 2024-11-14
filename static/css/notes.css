@@ -1,0 +1,84 @@
+.button_delete {
+    background-color: red;
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    color: white;
+    height: 20px;
+    margin: 4px 4px 0px 0px;
+    text-align: center;
+    width: 90px;
+}
+.button_edit {
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    margin: 4px 4px 0px 0px;
+    text-align: center;
+    width: 90px;
+}
+#button_delete_no {
+    background-color: red;
+    color: white;
+}
+#button_delete_yes {
+    background-color: green;
+    color: white;
+}
+#close_confirm_delete_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
+}
+.button_close_x {
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    padding: 4px;
+}
+#menu_confirm_delete_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.note_container {
+    border: black 1px solid;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+#note_edit_container {
+    border: black 1px solid;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 60%;
+}
+.note_menu {
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
+}
+#notes_container {
+    padding: 30px;
+}
+#note_confirm_delete_container {
+    border: black 1px solid;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 400px;
+}

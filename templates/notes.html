@@ -1,0 +1,36 @@
+{% extends 'init.html' %}
+{% block title %}
+    <title>tracking v2 - notes</title>
+{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notes.css') }}">
+{% endblock %}
+{% block body %}
+{#  popup div for confirming deleting a note #}
+    <div class="popup" id="note_confirm_delete_container">
+        <div id="close_confirm_delete_container">
+            <div class="button_close_x" onclick="close_popups()">x</div>
+        </div>
+        Are you sure you want to delete the note?
+        <br>
+        <div id="menu_confirm_delete_container">
+            <div id="button_delete_yes">yes</div>
+            <div id="button_delete_no">no</div>
+        </div>
+    </div>
+{#    #}
+    <div class="popup" id="note_edit_container">
+        <div id="close_edit_container">
+            <div id="close_confirm_delete_container">
+                <div class="button_close_x" onclick="close_popups()">x</div>
+            </div>
+            in construction...
+        </div>
+    </div>
+    <div id="notes_container">
+        no data loaded...
+    </div>
+{% endblock %}
+{% block javascript_footer %}
+    <script src="{{ url_for('static', filename='javascript/notes.js') }}"></script>
+{% endblock %}
