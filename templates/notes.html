@@ -6,26 +6,44 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/notes.css') }}">
 {% endblock %}
 {% block body %}
+{#  popup div for creating a note  #}
+    <div class="popup" id="note_create_container">
+        <div id="close_confirm_delete_container">
+            <div class="button button_close_x" onclick="close_popups()">x</div>
+        </div>
+        <form id="form_create_note" name="form_create_note">
+            title: <input id="note_title" name="note_title" required type="text"><br>
+            location: <input id="note_location" name="note_location" required type="text"><br>
+            tags: <input id="note_location" name="note_location" required type="text"><br>
+            text:<br>
+            <input id="note_text" name="note_text" required type="text">
+{#            <button type="" HERE
+        </form>
+    </div>
 {#  popup div for confirming deleting a note #}
     <div class="popup" id="note_confirm_delete_container">
         <div id="close_confirm_delete_container">
-            <div class="button_close_x" onclick="close_popups()">x</div>
+            <div class="button button_close_x" onclick="close_popups()">x</div>
         </div>
         Are you sure you want to delete the note?
         <br>
         <div id="menu_confirm_delete_container">
-            <div id="button_delete_yes">yes</div>
-            <div id="button_delete_no">no</div>
+            <div class="button" id="button_delete_yes">yes</div>
+            <div class="button" id="button_delete_no">no</div>
         </div>
     </div>
-{#    #}
+{#  popup div for editing a note  #}
     <div class="popup" id="note_edit_container">
         <div id="close_edit_container">
             <div id="close_confirm_delete_container">
-                <div class="button_close_x" onclick="close_popups()">x</div>
+                <div class="button button_close_x" onclick="close_popups()">x</div>
             </div>
             in construction...
         </div>
+    </div>
+{#  ...  #}
+    <div id="notes_menu">
+        <div class="button" id="button_create">create</div>
     </div>
     <div id="notes_container">
         no data loaded...

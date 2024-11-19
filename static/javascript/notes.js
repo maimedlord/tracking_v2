@@ -2,8 +2,10 @@ const URL_BASE = 'http://127.0.0.1:5000/api'
 let NOTES_OBJ = false;
 
 // HTML variables
+let id_button_create = document.getElementById('button_create');
 let id_button_delete_no = document.getElementById('button_delete_no');
 let id_button_delete_yes = document.getElementById('button_delete_yes');
+let id_note_create_container = document.getElementById('note_create_container');
 let id_note_confirm_delete_container = document.getElementById('note_confirm_delete_container');
 let id_note_edit_container = document.getElementById('note_edit_container');
 let id_notes_container = document.getElementById('notes_container');
@@ -55,7 +57,7 @@ async function api_get_notes() {
             let note_container = document.createElement('div');
             note_container.className = 'note_container';
             note_container.id = NOTES_OBJ['data'][i]['_id'];
-            note_container.innerHTML = '<div class="note_menu"><div class="button_delete" onclick="confirm_delete_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">DELETE</div><div class="button_edit" onclick="edit_note_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">EDIT</div></div>';
+            note_container.innerHTML = '<div class="note_menu"><div class="button button_delete" onclick="confirm_delete_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">DELETE</div><div class="button button_edit" onclick="edit_note_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">EDIT</div></div>';
             note_container.innerHTML += NOTES_OBJ['data'][i]['_id'] + "<br>" + NOTES_OBJ['data'][i]['title'] +
                 "<br>" + NOTES_OBJ['data'][i]['dateCreated'] + "<br>" + NOTES_OBJ['data'][i]['location'] +
                 "<br>" + NOTES_OBJ['data'][i]['text'];
@@ -101,9 +103,21 @@ function edit_note_popup(note_id) {
     try {
         close_popups();
         id_note_edit_container.style.display = 'flex';
+        console.log('edit_note_popup(' + note_id + ')')
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: edit_note_popup(): ", error);
+    }
+}
+
+// onclicks:
+id_button_create.onclick=function () {
+    try {
+        close_popups();
+        id_note_create_container.style.display = 'flex';
+    } catch (error) {
+        // Handle errors
+        console.error("There was an error with the fetch request: id_button_delete_no.onclick: ", error);
     }
 }
 
@@ -116,7 +130,7 @@ id_button_delete_no.onclick=function () {
     }
 }
 
-// Example usage
+// ???
 window.onload=function () {
     api_get_notes()
     .then(() => {})
