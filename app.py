@@ -158,6 +158,26 @@ def user_create():
 
 
 ## API routes
+@app.route('/api/note_create/<note_obj>', methods=['GET', 'POST'])
+@login_required
+def api_note_create(note_obj):
+    try:
+        print('note_create: ' + note_obj)
+        response = db.note_create(current_user.id_str, json.loads(note_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'status_code': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
 @app.route('/api/note_delete/<note_id>')
 @login_required
 def note_delete(note_id):
@@ -188,8 +208,9 @@ def api_note_update(note_obj):
 
 
 @app.route('/notes')
-# @login_required
+@login_required
 def notes():
+    print('notes', current_user.id_str)
     return render_template('notes.html')
 
 
@@ -197,6 +218,7 @@ def notes():
 @app.route('/api/notes_get_all', methods=['GET', 'POST'])
 @login_required
 def api_notes_get_all():
+    print(current_user.id_str)
     try:
         response = db.notes_get_all(current_user.id_str)
         # if other than None or empty list response has notes

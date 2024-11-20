@@ -11,13 +11,20 @@
         <div id="close_confirm_delete_container">
             <div class="button button_close_x" onclick="close_popups()">x</div>
         </div>
+        <div class="popup" id="note_create_error_message">
+            the title cannot be blank
+        </div>
         <form id="form_create_note" name="form_create_note">
-            title: <input id="note_title" name="note_title" required type="text"><br>
-            location: <input id="note_location" name="note_location" required type="text"><br>
-            tags: <input id="note_location" name="note_location" required type="text"><br>
-            text:<br>
-            <input id="note_text" name="note_text" required type="text">
-{#            <button type="" HERE
+            <label for="note_title">title:</label><br>
+            <input id="note_title" name="note_title" size="50" type="text"><br>
+            <label for="note_location">location:</label><br>
+            <input id="note_location" name="note_location" size="50" type="text"><br>
+            <label for="note_tags">tags:</label><br>
+            <input id="note_tags" name="note_tags" size="50" type="text"><br>
+            <label for="note_text">text:</label><br>
+            <input id="note_text" name="note_text" size="50" type="text">
+            <br>
+            <button type="button" id="button_note_create_submit">create note</button>
         </form>
     </div>
 {#  popup div for confirming deleting a note #}

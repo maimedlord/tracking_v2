@@ -5,7 +5,9 @@ let NOTES_OBJ = false;
 let id_button_create = document.getElementById('button_create');
 let id_button_delete_no = document.getElementById('button_delete_no');
 let id_button_delete_yes = document.getElementById('button_delete_yes');
+let id_button_note_create_submit = document.getElementById('button_note_create_submit');
 let id_note_create_container = document.getElementById('note_create_container');
+let id_note_create_error_message = document.getElementById('note_create_error_message');
 let id_note_confirm_delete_container = document.getElementById('note_confirm_delete_container');
 let id_note_edit_container = document.getElementById('note_edit_container');
 let id_notes_container = document.getElementById('notes_container');
@@ -60,7 +62,7 @@ async function api_get_notes() {
             note_container.innerHTML = '<div class="note_menu"><div class="button button_delete" onclick="confirm_delete_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">DELETE</div><div class="button button_edit" onclick="edit_note_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">EDIT</div></div>';
             note_container.innerHTML += NOTES_OBJ['data'][i]['_id'] + "<br>" + NOTES_OBJ['data'][i]['title'] +
                 "<br>" + NOTES_OBJ['data'][i]['dateCreated'] + "<br>" + NOTES_OBJ['data'][i]['location'] +
-                "<br>" + NOTES_OBJ['data'][i]['text'];
+                "<br>" + NOTES_OBJ['data'][i]['tags'] + "<br>" + NOTES_OBJ['data'][i]['text'];
             id_notes_container.append(note_container);
         }
     } catch (error) {
@@ -130,11 +132,52 @@ id_button_delete_no.onclick=function () {
     }
 }
 
+id_button_note_create_submit.onclick= async function () {
+    try {
+        const form_title = document.getElementById('note_title').value;
+        const form_location = document.getElementById('note_location').value;
+        const form_tags = document.getElementById('note_tags').value;
+        const form_text = document.getElementById('note_text').value;
+        console.log(form_title);
+        // INPUT VALIDATION
+        if (form_title == "") {
+            id_note_create_error_message.style.display = 'flex';
+        }
+        let note_obj = {
+            'title': form_title,
+            'location': form_location,
+            'tags': form_tags,
+            'text': form_text
+        }
+        console.log(note_obj);
+        let url = URL_BASE + '/note_create/' + JSON.stringify(note_obj);
+        // make asynchronous POST request to the API
+        const response = await fetch(url, {method: 'GET'});
+        // check if response was successful
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Parse the JSON data from the response
+        const data = await response.json();
+        console.log(data);
+        if (!data || data.status_code != 200) {
+            id_note_create_error_message.textContent = 'Error creating note: non-200 response received...';
+            id_note_create_error_message.style.display = 'flex';
+            return;
+        }
+        close_popups()
+        api_get_notes()
+            .then(() => {})
+            .catch(error => console.error("Error in api_get_notes:", error));
+    } catch (error) {
+        // Handle errors
+        console.error("There was an error with the fetch request: id_button_note_create_submit.onclick: ", error);
+    }
+}
+
 // ???
 window.onload=function () {
     api_get_notes()
-    .then(() => {})
-    .catch(error => console.error("Error in api_get_notes:", error));
+        .then(() => {})
+        .catch(error => console.error("Error in api_get_notes:", error));
 }
-
-

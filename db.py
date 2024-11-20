@@ -26,6 +26,18 @@ userLog_num_elements: int = 100
 # RETURN None if creating note fails || insert_one object if successful
 def note_create(id_str: str, note_obj: dict):
     try:
+        # first, prep insert object
+        now_time = datetime.now(timezone.utc)
+        note_obj['dateCreated'] = now_time
+        note_obj['noteLog'] = [
+            {
+                'logDate': datetime.now(timezone.utc),
+                'logCode': 0,
+                'logMessage': 'note first created'
+            }
+        ]
+        note_obj['tags'] = note_obj['tags'].split(',')
+        # push to db
         collection = db_notes[id_str]
         response = collection.insert_one(note_obj)
         if response and response.acknowledged:
@@ -238,7 +250,7 @@ def user_is_email_exists(email):
 if __name__ == '__main__':
     # print(notes_get_all('67327892c32490cdcec4ff2b'))
 
-    print(note_create('67327892c32490cdcec4ff2b',{
+    print(note_create('673d1ba9850c9cb87395c86f', {  # DIFFERENCE
         'dateCreated': datetime.now(timezone.utc),
         'title': 'the title of the note',
         'location': 'location as string',
