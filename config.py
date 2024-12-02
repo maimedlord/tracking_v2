@@ -13,11 +13,11 @@ SESSION_TYPE = 'mongodb'
 # HTTP status codes
 http_204: object = {
     'status': 'success',
-    'status_code': 204,
+    'statusCode': 204,
     'data': 'no data to return'
 }
 http_500: object = {
     'status': 'fail',
-    'status_code': 500,
+    'statusCode': 500,
     'data': 'server encountered error'
 }

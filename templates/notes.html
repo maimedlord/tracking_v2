@@ -8,49 +8,88 @@
 {% block body %}
 {#  popup div for creating a note  #}
     <div class="popup" id="note_create_container">
-        <div id="close_confirm_delete_container">
+        <div class="close_confirm_container">
             <div class="button button_close_x" onclick="close_popups()">x</div>
         </div>
         <div class="popup" id="note_create_error_message">
             the title cannot be blank
         </div>
         <form id="form_create_note" name="form_create_note">
-            <label for="note_title">title:</label><br>
-            <input id="note_title" name="note_title" size="50" type="text"><br>
-            <label for="note_location">location:</label><br>
-            <input id="note_location" name="note_location" size="50" type="text"><br>
-            <label for="note_tags">tags:</label><br>
-            <input id="note_tags" name="note_tags" size="50" type="text"><br>
-            <label for="note_text">text:</label><br>
-            <input id="note_text" name="note_text" size="50" type="text">
+            <label for="create_note_title">title:</label><br>
+            <input id="create_note_title" name="create_note_title" size="50" type="text"><br>
+            note children:<br>
+            note parents:<br>
+            <label for="create_note_color">color:</label><br>
+            <input id="create_note_color" name="create_note_color" type="color"><br>
+            <label for="create_note_location">location:</label><br>
+            <input id="create_note_location" name="create_note_location" size="50" type="text"><br>
+            <label for="create_note_intensity">intensity:</label><br>
+            <input id="create_note_intensity" max="100" min="0" name="create_note_intensity" size="50" type="number"><br>
+            <label for="create_note_tags">tags <i>comma separated</i>:</label><br>
+            <input id="create_note_tags" name="create_note_tags" size="50" type="text"><br>
+            <label for="create_note_text">text:</label><br>
+            <input id="create_note_text" name="create_note_text" size="50" type="text">
             <br>
             <button type="button" id="button_note_create_submit">create note</button>
         </form>
     </div>
 {#  popup div for confirming deleting a note #}
     <div class="popup" id="note_confirm_delete_container">
-        <div id="close_confirm_delete_container">
+        <div class="close_confirm_container">
             <div class="button button_close_x" onclick="close_popups()">x</div>
         </div>
         Are you sure you want to delete the note?
         <br>
         <div id="menu_confirm_delete_container">
-            <div class="button" id="button_delete_yes">yes</div>
             <div class="button" id="button_delete_no">no</div>
+            <div class="button" id="button_delete_yes">yes</div>
         </div>
     </div>
 {#  popup div for editing a note  #}
     <div class="popup" id="note_edit_container">
-        <div id="close_edit_container">
-            <div id="close_confirm_delete_container">
-                <div class="button button_close_x" onclick="close_popups()">x</div>
-            </div>
-            in construction...
+        <div class="close_confirm_container">
+            <div class="button button_close_x" onclick="close_popups()">x</div>
         </div>
+        <div class="popup" id="note_update_error_message">
+            the title cannot be blank
+        </div>
+        <form id="form_update_note" name="form_update_note">
+            <input id="update_note_id" name="update_note_id" type="hidden">
+            <label for="update_note_title">title:</label><br>
+            <input id="update_note_title" name="update_note_title" size="50" type="text"><br>
+            note children:<br>
+            note parents:<br>
+            <label for="update_note_color">color:</label><br>
+            <input id="update_note_color" name="update_note_color" type="color"><br>
+            <label for="update_note_location">location:</label><br>
+            <input id="update_note_location" name="update_note_location" size="50" type="text"><br>
+            <label for="update_note_intensity">intensity:</label><br>
+            <input id="update_note_intensity" max="100" min="0" name="update_note_intensity" size="50" type="number"><br>
+            <label for="cupdate_note_tags">tags <i>comma separated</i>:</label><br>
+            <input id="update_note_tags" name="update_note_tags" size="50" type="text"><br>
+            <label for="update_note_text">text:</label><br>
+            <input id="update_note_text" name="update_note_text" size="50" type="text">
+            <br>
+            <button type="button" id="button_note_update_submit">update note</button>
+        </form>
     </div>
 {#  ...  #}
     <div id="notes_menu">
         <div class="button" id="button_create">create</div>
+        <div>
+            sort by:
+            <select id="select_sort_by" name="select_sort_by" title="select_sort_by">
+                <option disabled selected value="">sort by...</option>
+                <option value="datecreated,0">date created ascending</option>
+                <option value="datecreated,1">date created descending</option>
+                <option value="intensity,0">intensity ascending</option>
+                <option value="intensity,1">intensity descending</option>
+                <option value="textlength,0">text length ascending</option>
+                <option value="textlength,1">text length descending</option>
+                <option value="title,0">title ascending</option>
+                <option value="title,1">title descending</option>
+            </select>
+        </div>
     </div>
     <div id="notes_container">
         no data loaded...

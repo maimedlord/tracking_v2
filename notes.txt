@@ -1,0 +1,7 @@
+view_object:
+
+{
+    'page': {
+        'some_id_name_maybe': 'datecreated,0'
+    }
+}

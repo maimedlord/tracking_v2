@@ -29,7 +29,7 @@
     color: white;
     width: 40px;
 }
-#close_confirm_delete_container {
+.close_confirm_container {
     align-items: center;
     display: flex;
     flex-direction: row-reverse;
@@ -76,6 +76,7 @@
     flex-direction: row;
     font-weight: bold;
     justify-content: center;
+    padding: 3px;
     text-align: center;
     width: 100%;
 }
@@ -96,6 +97,18 @@
 .note_menu {
     display: flex;
     flex-direction: row-reverse;
+    width: 100%;
+}
+#note_update_error_message {
+    align-items: center;
+    background-color: red;
+    color: white;
+    display: none;
+    flex-direction: row;
+    font-weight: bold;
+    justify-content: center;
+    padding: 3px;
+    text-align: center;
     width: 100%;
 }
 #notes_menu {

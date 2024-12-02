@@ -36,6 +36,7 @@ login_mgr.init_app(app)
 def user_loader(user_id):
     return db.user_is_active_by_id(user_id)
 
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -113,6 +114,12 @@ def logout():
         return redirect(url_for('error_page'))
 
 
+@app.route('/notes')
+@login_required
+def notes():
+    return render_template('notes.html')
+
+
 @app.route('/user_create', methods=['GET', 'POST'])
 def user_create():
     try:
@@ -157,8 +164,8 @@ def user_create():
         return redirect(url_for('error_page'))
 
 
-## API routes
-@app.route('/api/note_create/<note_obj>', methods=['GET', 'POST'])
+# API routes ##
+@app.route('/api/note_create/<note_obj>')
 @login_required
 def api_note_create(note_obj):
     try:
@@ -168,7 +175,7 @@ def api_note_create(note_obj):
             print(response)
             return json.dumps({
                 'status': 'success',
-                'status_code': 200,
+                'statusCode': 200,
                 'data': []
             })
         return json.dumps(http_500)
@@ -187,7 +194,7 @@ def note_delete(note_id):
             print(response)
             return json.dumps({
                 'status': 'success',
-                'status_code': 200,
+                'statusCode': 200,
                 'data': []
             })
         return json.dumps(http_500)
@@ -196,29 +203,29 @@ def note_delete(note_id):
         utility.log_write(str(e))
         return json.dumps(http_500)
 
+
 @app.route('/api/note_update/<note_obj>')
 @login_required
 def api_note_update(note_obj):
     try:
-        pass
+        response = db.note_update(current_user.id_str, json.loads(note_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
     except Exception as e:
         print(str(e))
         utility.log_write(str(e))
         return json.dumps(http_500)
 
 
-@app.route('/notes')
-@login_required
-def notes():
-    print('notes', current_user.id_str)
-    return render_template('notes.html')
-
-
 # confirmed working 24/11/13
-@app.route('/api/notes_get_all', methods=['GET', 'POST'])
+@app.route('/api/notes_get_all')
 @login_required
 def api_notes_get_all():
-    print(current_user.id_str)
     try:
         response = db.notes_get_all(current_user.id_str)
         # if other than None or empty list response has notes
@@ -227,13 +234,96 @@ def api_notes_get_all():
             response = utility.convert_objectids_to_string(response) # convert ObjectId to string recursively
             return json.dumps({
                 'status': 'success',
-                'status_code': 200,
+                'statusCode': 200,
                 'data': response
             })
         # handle empty list
         if isinstance(response, list):
             return json.dumps(http_204)
         # None indicates error
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/task_create/<task_obj>')
+@login_required
+def api_task_create(task_obj):
+    try:
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/task_delete/<task_id>')
+@login_required
+def api_task_delete(task_id):
+    try:
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+@app.route('/api/task_update/<task_obj>')
+@login_required
+def api_task_update(task_obj):
+    try:
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/tasks_get_all')
+@login_required
+def api_tasks_get_all():
+    try:
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/view_get/<target>')
+@login_required
+def api_view_get(target):
+    try:
+        response = db.view_get(current_user.id_str, target)
+        print(response)
+        if response:
+            response = response['view_configs']['notes']
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': response
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/view_update/<view_obj>')
+@login_required
+def api_view_update(view_obj):
+    try:
+        response = db.view_update(current_user.id_str, json.loads(view_obj))
+        if response:
+            if response:
+                print('api_view_update response' + str(response))
+                return json.dumps({
+                    'status': 'success',
+                    'statusCode': 200,
+                    'data': []
+                })
         return json.dumps(http_500)
     except Exception as e:
         print(str(e))

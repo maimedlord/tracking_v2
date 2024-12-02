@@ -23,6 +23,7 @@ c_users = db_users['users']
 noteLog_num_elements: int = 100
 userLog_num_elements: int = 100
 
+
 # RETURN None if creating note fails || insert_one object if successful
 def note_create(id_str: str, note_obj: dict):
     try:
@@ -65,12 +66,14 @@ def note_delete(user_id_str: str, note_id_str: str):
 
 # RETURN True if note updated || False if any errors encountered
 # confirmed working 24/11/12
-def note_update(user_id_str: str, note_id_str: str, note_obj: dict) -> bool:
+def note_update(user_id_str: str, note_obj: dict) -> bool:
     try:
         collection = db_notes[user_id_str]
-        response = collection.update_one({'_id': ObjectId(note_id_str)}, {
+        response = collection.update_one({'_id': ObjectId(note_obj['id'])}, {
             '$set': {
                 'title': note_obj['title'],
+                'color': note_obj['color'],
+                'intensity': note_obj['intensity'],
                 'location': note_obj['location'],
                 'tags': note_obj['tags'],
                 'text': note_obj['text']
@@ -88,13 +91,13 @@ def note_update(user_id_str: str, note_id_str: str, note_obj: dict) -> bool:
             raise Exception('Unable to update userLog with new logEvent')
         # check size of userLog and pop oldest element if too many elements
         response = collection.aggregate([
-            {'$match': {'_id': ObjectId(note_id_str)}},
+            {'$match': {'_id': ObjectId(note_obj['id'])}},
             {'$project': {'_id': 0, 'noteLog_size': {'$size': '$noteLog'}}}
         ])
         if response:
             response = list(response)
             if len(response) > 0 and response[0]['noteLog_size'] > noteLog_num_elements:
-                response = collection.update_one({'_id': ObjectId(note_id_str)}, {'$pop': {'noteLog': -1}})
+                response = collection.update_one({'_id': ObjectId(note_obj['id'])}, {'$pop': {'noteLog': -1}})
                 if not response.acknowledged:
                     raise Exception('Unable to update noteLog by popping earliest logEvent')
         return True
@@ -189,6 +192,7 @@ def user_create(email: str, password: str, username: str) -> bool:
             'logTags': ['account', 'create', 'user']
         }],
         'userName': username,
+        'view_configs': {}
     }
     try:
         response = c_users.insert_one(new_user_obj)
@@ -244,6 +248,39 @@ def user_is_email_exists(email):
         print(str(e))
         utility.log_write(str(e))
         return None
+
+
+# RETURN ???
+def view_get(id_str: str, target: str):
+    try:
+        response = c_users.find_one({'_id': ObjectId(id_str), str('view_configs' + '.' + target): {"$exists": True}}, {
+            str('view_configs' + '.' + target): 1
+        })
+        print(response)
+        return response
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+# RETURN ???
+def view_update(id_str: str, view_obj):
+    try:
+        all_passed: bool = True
+        for key in view_obj.keys():
+            for key2 in view_obj[key].keys():
+                # will create object with nested properties if need be: { view_configs: div_id: value }
+                # if object exists will update property without affecting other properties
+                response = c_users.update_one({'_id': ObjectId(id_str)}, {
+                    "$set": { str('view_configs.' + key + '.' + key2): view_obj[key][key2] }
+                })
+                if not response.acknowledged:
+                    all_passed = False
+        return all_passed
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return False
 
 
 # TESTING
