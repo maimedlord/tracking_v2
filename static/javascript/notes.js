@@ -182,55 +182,47 @@ function sort_notes() {
     let sorted_arr = Array.from(id_notes_container.childNodes);
     switch (id_select_sort_by.value) {
         case 'datecreated,0':
-            console.log('datecreated,0');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.datecreated.localeCompare(b.dataset.datecreated);
             });
             break;
         case 'datecreated,1':
-            console.log('datecreated,1');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.datecreated.localeCompare(b.dataset.datecreated) * -1;
             });
             break;
         case 'intensity,0':
-            console.log('intensity,0');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.intensity.localeCompare(b.dataset.intensity);
             });
             break;
         case 'intensity,1':
-            console.log('intensity,1');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.intensity.localeCompare(b.dataset.intensity) * -1;
             });
             break;
         case 'textlength,0':
-            console.log('textlength,0');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.textlength.localeCompare(b.dataset.textlength);
             });
             break;
         case 'textlength,1':
-            console.log('textlength,1');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.textlength.localeCompare(b.dataset.textlength) * -1;
             });
             break;
         case 'title,0':
-            console.log('title,0');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.title.localeCompare(b.dataset.title);
             });
             break;
         case 'title,1':
-            console.log('title,1');
             sorted_arr = sorted_arr.sort(function (a, b) {
                 return a.dataset.title.localeCompare(b.dataset.title) * -1;
             });
             break;
         default:
-            console.log('switch case default');
+            console.log('switch case default...');
     }
     id_notes_container.innerHTML = '';
     for (let element of sorted_arr) {
@@ -244,14 +236,13 @@ async function view_update(view_obj) {
         // make asynchronous POST request to the API
         const response = await fetch(url, {method: 'GET'});
         // check if response was successful
-        console.log(response);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         // Parse the JSON data from the response
         const data = await response.json();
-        if (data.statusCode != 200) {
-            console.log('view_update: ' + data.statusCode)
+        if (data.status !== 200) {
+            console.log('view_update: ' + data.statusCode);
         }
     } catch (error) {
         // Handle errors
@@ -417,16 +408,18 @@ window.onload=function () {
     get_view_configs('notes')
         .then(() => {
             if (!VIEWS_OBJ) {
+                console.log('VIEWS_OBJ is false');
                 return;
             }
-            console.log(VIEWS_OBJ);
-            for (let key in Object.keys(VIEWS_OBJ)) {
-                let temp_doc = document.getElementById(key);
-                console.log(key);
+            let object_keys = Object.keys(VIEWS_OBJ);
+            for (let i = 0; i < object_keys.length; i++) {
+                let temp_doc = document.getElementById(object_keys[i]);
+                // skip assigning value if id cannot be found
                 if (temp_doc) {
-                    temp_doc.value = VIEWS_OBJ[key];
+                    temp_doc.value = VIEWS_OBJ[object_keys[i]];
                 }
             }
+            // sort notes
             if (id_select_sort_by.value !== "") {
                 sort_notes();
             }
