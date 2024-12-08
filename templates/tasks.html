@@ -1,10 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'init.html' %}
+{% block title %}
+    <title>tracking v2 - tasks</title>
+{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tasks.css') }}">
+{% endblock %}
+{% block body %}
+{#  popup div for creating a note  #}
+    <div class="popup" id="task_create_container">
+        <div class="close_confirm_container">
+            <div class="button button_close_x" onclick="close_popups()">x</div>
+        </div>
+        <div class="popup" id="task_create_error_message">
+            the title cannot be blank
+        </div>
+        <form id="form_create_task" name="form_create_task">
+            <label for="create_task_title">title:</label><br>
+            <input id="create_task_title" name="create_task_title" size="50" type="text"><br>
+            <label for="create_task_description">description:</label><br>
+            <input id="create_task_description" name="create_task_description" size="50" type="text"><br>
+            task children:<br>
+            task parents:<br>
+            <label for="create_task_datestart">start time:</label><br>
+            <input id="create_task_datestart" name="create_task_datestart" type="datetime-local"><br>
+            <label for="create_task_dateend">end time:</label><br>
+            <input id="create_task_dateend" name="create_task_dateend" type="datetime-local"><br>
+            task reminders:<br>
+            task repeat:<br>
+            <label for="create_task_guests">guests:</label><br>
+            <input id="create_task_guests" name="create_task_guests" type="text"><br>
+            <label for="create_task_color">color:</label><br>
+            <input id="create_task_color" name="create_task_color" type="color" value="#FFFFFF"><br>
+            <label for="create_task_location">location:</label><br>
+            <input id="create_task_location" name="create_task_location" size="50" type="text"><br>
+            <label for="create_task_priority">priority:</label><br>
+            <input id="create_task_priority" max="100" min="0" name="create_task_priority" size="50" type="number"><br>
+            <label for="create_task_intensity">intensity:</label><br>
+            <input id="create_task_intensity" max="100" min="0" name="create_task_intensity" size="50" type="number"><br>
+            <label for="create_task_tags">tags <i>comma separated</i>:</label><br>
+            <input id="create_task_tags" name="create_task_tags" size="50" type="text"><br>
+            <label for="create_task_text">text:</label><br>
+            <input id="create_task_text" name="create_task_text" size="50" type="text">
+            <br>
+            <button type="button" id="button_task_create_submit">create task</button>
+        </form>
+    </div>
+{#  popup div for confirming deleting a task #}
+    <div class="popup" id="task_confirm_delete_container">
+        <div class="close_confirm_container">
+            <div class="button button_close_x" onclick="close_popups()">x</div>
+        </div>
+        Are you sure you want to delete the task?
+        <br>
+        <div id="menu_confirm_delete_container">
+            <div class="button" id="button_delete_no">no</div>
+            <div class="button" id="button_delete_yes">yes</div>
+        </div>
+    </div>
+{#  popup div for editing a task  #}
+    <div class="popup" id="task_edit_container">
+        <div class="close_confirm_container">
+            <div class="button button_close_x" onclick="close_popups()">x</div>
+        </div>
+        <div class="popup" id="task_update_error_message">
+            the title cannot be blank
+        </div>
+        <form id="form_update_task" name="form_update_task">
+            <input id="update_task_id" name="update_task_id" type="hidden">
+            <label for="update_task_title">title:</label><br>
+            <input id="update_task_title" name="update_task_title" size="50" type="text"><br>
+            task children:<br>
+            task parents:<br>
+            <label for="update_task_color">color:</label><br>
+            <input id="update_task_color" name="update_task_color" type="color"><br>
+            <label for="update_task_location">location:</label><br>
+            <input id="update_task_location" name="update_task_location" size="50" type="text"><br>
+            <label for="update_task_guests">guests:</label><br>
+            <input id="update_task_guests" name="update_task_guests" size="50" type="text"><br>
+            <label for="update_task_intensity">intensity:</label><br>
+            <input id="update_task_intensity" max="100" min="0" name="update_task_intensity" size="50" type="number"><br>
+            <label for="update_task_priority">priority:</label><br>
+            <input id="update_task_priority" max="100" min="0" name="update_task_priority" size="50" type="number"><br>
+            <label for="update_task_tags">tags <i>comma separated</i>:</label><br>
+            <input id="update_task_tags" name="update_task_tags" size="50" type="text"><br>
+            <label for="update_task_text">text:</label><br>
+            <input id="update_task_text" name="update_task_text" size="50" type="text">
+            <br>
+            <button type="button" id="button_task_update_submit">update task</button>
+        </form>
+    </div>
 
-</body>
-</html>
+{#  ...  #}
+    <div id="tasks_menu">
+        <div class="button" id="button_create">create</div>
+    </div>
+    <div id="tasks_container">
+        no data loaded...
+    </div>
+{% endblock %}
+{% block javascript_footer %}
+    <script src="{{ url_for('static', filename='javascript/tasks.js') }}"></script>
+{% endblock %}

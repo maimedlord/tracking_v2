@@ -120,6 +120,12 @@ def notes():
     return render_template('notes.html')
 
 
+@app.route('/tasks')
+@login_required
+def tasks():
+    return render_template('tasks.html')
+
+
 @app.route('/user_create', methods=['GET', 'POST'])
 def user_create():
     try:
@@ -252,6 +258,15 @@ def api_notes_get_all():
 @login_required
 def api_task_create(task_obj):
     try:
+        print('task_create: ' + task_obj)
+        response = db.task_create(current_user.id_str, json.loads(task_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
         return json.dumps(http_500)
     except Exception as e:
         print(str(e))
@@ -263,6 +278,14 @@ def api_task_create(task_obj):
 @login_required
 def api_task_delete(task_id):
     try:
+        response = db.task_delete(current_user.id_str, task_id)
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
         return json.dumps(http_500)
     except Exception as e:
         print(str(e))
@@ -273,6 +296,14 @@ def api_task_delete(task_id):
 @login_required
 def api_task_update(task_obj):
     try:
+        response = db.task_update(current_user.id_str, json.loads(task_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
         return json.dumps(http_500)
     except Exception as e:
         print(str(e))
@@ -284,6 +315,20 @@ def api_task_update(task_obj):
 @login_required
 def api_tasks_get_all():
     try:
+        response = db.tasks_get_all(current_user.id_str)
+        # if other than None or empty list response has notes
+        if response:
+            response = utility.convert_datetimes_to_string(response)  # convert datetime to string recursively
+            response = utility.convert_objectids_to_string(response)  # convert ObjectId to string recursively
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': response
+            })
+        # handle empty list
+        if isinstance(response, list):
+            return json.dumps(http_204)
+        # None indicates error
         return json.dumps(http_500)
     except Exception as e:
         print(str(e))

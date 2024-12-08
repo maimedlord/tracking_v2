@@ -11,6 +11,14 @@
         {% endblock %}
     </head>
 <body>
+<div id="nav">
+    <div>
+        <a href="{{ url_for('notes') }}">notes</a>
+    </div>
+    <div>
+        <a href="{{ url_for('tasks') }}">tasks</a>
+    </div>
+</div>
 {% block body %}
 {% endblock %}
 {% block javascript_footer %}

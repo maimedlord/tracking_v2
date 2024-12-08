@@ -8,6 +8,16 @@ body {
 #err_messages_container {
 
 }
+#nav {
+    align-items: center;
+    background-color: darkgrey;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: center;
+    padding: 5px;
+    width: 100%;
+}
 #test_main {
     align-items: center;
     display: flex;

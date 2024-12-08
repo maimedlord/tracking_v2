@@ -1,7 +1,3 @@
-const URL_BASE = 'http://127.0.0.1:5000/api';
-let NOTES_OBJ = false;
-let VIEWS_OBJ = false;
-
 // HTML variables
 let id_button_create = document.getElementById('button_create');
 let id_button_delete_no = document.getElementById('button_delete_no');
@@ -18,10 +14,13 @@ let id_select_sort_by = document.getElementById('select_sort_by');
 
 // other variables
 let last_sort_by = '';
+let NOTES_OBJ = false;
 let this_page = 'notes';
+const URL_BASE = 'http://127.0.0.1:5000/api';
+let VIEWS_OBJ = false;
 //
 
-async function api_delete_note(note_id) {
+async function delete_note(note_id) {
     try {
         console.log(note_id);
         let url = URL_BASE + '/note_delete/' + note_id;
@@ -34,18 +33,16 @@ async function api_delete_note(note_id) {
         // Parse the JSON data from the response
         const data = await response.json();
         console.log(response);
-        api_get_notes()
+        get_notes()
             .then(() => {})
-            .catch(error => console.error("Error in api_get_notes:", error));
+            .catch(error => console.error("Error in get_notes:", error));
     } catch (error) {
         // Handle errors
-        console.error("There was an error with the fetch request: api_delete_note(): ", error);
+        console.error("There was an error with the fetch request: delete_note(): ", error);
     }
 }
 
-async function api_edit_note() {}
-
-async function api_get_notes() {
+async function get_notes() {
     try {
         let url = URL_BASE + '/notes_get_all';
         // Make an asynchronous GET request to the API
@@ -57,9 +54,9 @@ async function api_get_notes() {
         // Parse the JSON data from the response
         const data = await response.json();
         NOTES_OBJ = data;
-        if (parseInt(NOTES_OBJ['statusCode']) == 204) {// exit
+        if (parseInt(NOTES_OBJ['statusCode']) === 204) {// exit
             id_notes_container.innerHTML = 'There are no notes.';
-            console.log('api_get_notes() non-200 Response:\n', NOTES_OBJ);
+            console.log('get_notes() non-200 Response:\n', NOTES_OBJ);
             return;
         }
         id_notes_container.innerHTML = '';
@@ -83,7 +80,7 @@ async function api_get_notes() {
         }
     } catch (error) {
         // Handle errors
-        console.error("There was an error with the fetch request: api_get_notes(): ", error);
+        console.error("There was an error with the fetch request: get_notes(): ", error);
     }
 }
 
@@ -101,13 +98,13 @@ function confirm_delete_popup(note_id) {
         close_popups();
         id_note_confirm_delete_container.style.display = 'flex';
         id_button_delete_yes.onclick=function () {
-            api_delete_note(note_id)
+            delete_note(note_id)
                 .then(() => {
                     console.log('button delete yes was clicked');
                     id_note_confirm_delete_container.style.display = 'none';
-                    api_get_notes()
+                    get_notes()
                         .then(() => {
-                            console.log('api_get_notes activated');
+                            console.log('get_notes activated');
                         })
                 })
         }
@@ -174,7 +171,7 @@ async function get_view_configs(target) {
         VIEWS_OBJ = data.data;
     } catch (error) {
         // Handle errors
-        console.error("There was an error with the fetch request: api_get_notes(): ", error);
+        console.error("There was an error with the fetch request: get_notes(): ", error);
     }
 }
 
@@ -272,27 +269,27 @@ id_button_delete_no.onclick=function () {
 
 id_button_note_create_submit.onclick=async function () {
     try {
-        const form_color = document.getElementById('create_note_color').value;
-        const form_title = document.getElementById('create_note_title').value;
-        const form_location = document.getElementById('create_note_location').value;
-        const form_intensity = document.getElementById('create_note_intensity').value;
-        const form_tags = document.getElementById('create_note_tags').value;
-        const form_text = document.getElementById('create_note_text').value;
+        let id_form_color = document.getElementById('create_note_color');
+        let id_form_title = document.getElementById('create_note_title');
+        let id_form_location = document.getElementById('create_note_location');
+        let id_form_intensity = document.getElementById('create_note_intensity');
+        let id_form_tags = document.getElementById('create_note_tags');
+        let id_form_text = document.getElementById('create_note_text');
         // INPUT VALIDATION
         // note title cannot be blank
-        if (form_title == "") {
+        if (id_form_title.value.toString() === "") {
             id_note_create_error_message.style.display = 'flex';
             return;
         }
         let note_obj = {
-            'color': form_color.substring(1,form_color.length),
+            'color': id_form_color.value.substring(1,id_form_color.value.length),
             'children': [],
-            'location': form_location,
-            'intensity': form_intensity,
+            'location': id_form_location.value,
+            'intensity': id_form_intensity.value,
             'parents': [],
-            'tags': form_tags,
-            'text': form_text,
-            'title': form_title,
+            'tags': id_form_tags.value,
+            'text': id_form_text.value,
+            'title': id_form_title.value,
         }
         let url = URL_BASE + '/note_create/' + JSON.stringify(note_obj);
         // make asynchronous POST request to the API
@@ -311,15 +308,15 @@ id_button_note_create_submit.onclick=async function () {
         }
         close_popups()
         // reset form values
-        document.getElementById('create_note_color').value = '';
-        document.getElementById('create_note_title').value = '';
-        document.getElementById('create_note_location').value = '';
-        document.getElementById('create_note_intensity').value = '';
-        document.getElementById('create_note_tags').value = '';
-        document.getElementById('create_note_text').value = '';
-        api_get_notes()
+        id_form_color.value = '';
+        id_form_title.value = '';
+        id_form_location.value = '';
+        id_form_intensity.value = '';
+        id_form_tags.value = '';
+        id_form_text.value = '';
+        get_notes()
             .then(() => {})
-            .catch(error => console.error("Error in api_get_notes:", error));
+            .catch(error => console.error("Error in get_notes:", error));
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: id_button_note_create_submit.onclick: ", error);
@@ -328,29 +325,30 @@ id_button_note_create_submit.onclick=async function () {
 
 id_button_note_update_submit.onclick=async function () {
     try {
-        const form_id = document.getElementById('update_note_id').value;
-        const form_color = document.getElementById('update_note_color').value;
-        const form_title = document.getElementById('update_note_title').value;
-        const form_location = document.getElementById('update_note_location').value;
-        const form_intensity = document.getElementById('update_note_intensity').value;
-        const form_tags = document.getElementById('update_note_tags').value;
-        const form_text = document.getElementById('update_note_text').value;
+        let id_form_id = document.getElementById('update_note_id');
+        let id_form_color = document.getElementById('update_note_color');
+        let id_form_title = document.getElementById('update_note_title');
+        let id_form_location = document.getElementById('update_note_location');
+        let id_form_intensity = document.getElementById('update_note_intensity');
+        let id_form_tags = document.getElementById('update_note_tags');
+        let id_form_text = document.getElementById('update_note_text');
+
         // INPUT VALIDATION
         // note title cannot be blank
-        if (form_title == "") {
+        if (id_form_title.value === "") {
             id_note_update_error_message.style.display = 'flex';
             return;
         }
         let note_obj = {
-            'id': form_id,
-            'color': form_color.substring(1,form_color.length),
+            'id': id_form_id.value,
+            'color': id_form_color.value.substring(1,id_form_color.value.length),
             'children': [],
-            'location': form_location,
-            'intensity': form_intensity,
+            'location': id_form_location.value,
+            'intensity': id_form_intensity.value,
             'parents': [],
-            'tags': form_tags,
-            'text': form_text,
-            'title': form_title,
+            'tags': id_form_tags.value,
+            'text': id_form_text.value,
+            'title': id_form_title.value,
         }
         let url = URL_BASE + '/note_update/' + JSON.stringify(note_obj);
         // make asynchronous POST request to the API
@@ -365,10 +363,10 @@ id_button_note_update_submit.onclick=async function () {
             id_note_create_error_message.style.display = 'flex';
             return;
         }
-        close_popups()
-        api_get_notes()
+        close_popups();
+        get_notes()
             .then(() => {})
-            .catch(error => console.error("Error in api_get_notes:", error));
+            .catch(error => console.error("Error in get_notes:", error));
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: id_button_note_update_submit.onclick: ", error);
@@ -402,9 +400,9 @@ id_select_sort_by.onclick=function () {
 
 // ???
 window.onload=function () {
-    api_get_notes()
+    get_notes()
         .then()
-        .catch(error => console.error("Error in api_get_notes:", error));
+        .catch(error => console.error("Error in get_notes:", error));
     get_view_configs('notes')
         .then(() => {
             if (!VIEWS_OBJ) {

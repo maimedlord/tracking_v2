@@ -1,0 +1,140 @@
+.button {
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    text-align: center;
+    width: 90px;
+}
+.button:active {
+    box-shadow: dimgray -2px -2px;
+}
+.button_create {
+
+}
+.button_delete {
+    background-color: red;
+    color: white;
+    height: 20px;
+    margin: 4px 4px 0px 0px;
+}
+.button_edit {
+    margin: 4px 4px 0px 0px;
+}
+#button_delete_no {
+    background-color: red;
+    color: white;
+    width: 40px;
+}
+#button_delete_yes {
+    background-color: green;
+    color: white;
+    width: 40px;
+}
+.close_confirm_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
+}
+.button_close_x {
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    padding: 4px;
+    width: 15px ;
+}
+#menu_confirm_delete_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+#task_create_container {
+    border: black 1px solid;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 60%;
+}
+.task_container {
+    border: black 1px solid;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    padding: 5px;
+}
+#task_create_error_message {
+    align-items: center;
+    background-color: red;
+    color: white;
+    display: none;
+    flex-direction: row;
+    font-weight: bold;
+    justify-content: center;
+    padding: 3px;
+    text-align: center;
+    width: 100%;
+}
+#task_edit_container {
+    border: black 1px solid;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 60%;
+}
+.task_menu {
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
+}
+#task_update_error_message {
+    align-items: center;
+    background-color: red;
+    color: white;
+    display: none;
+    flex-direction: row;
+    font-weight: bold;
+    justify-content: center;
+    padding: 3px;
+    text-align: center;
+    width: 100%;
+}
+#tasks_menu {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 20px;
+    justify-content: center;
+}
+#tasks_container {
+    padding: 30px;
+}
+#task_confirm_delete_container {
+    border: black 1px solid;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 400px;
+}
+#tasks_menu {
+    width: 100%;
+}

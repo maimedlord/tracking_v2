@@ -12,15 +12,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 # pymongo variables:
 mongo_client = MongoClient()
-db_measurables = mongo_client['tv2_measurables'] # not in use yet
+db_measurables = mongo_client['tv2_measurables']  # not in use yet
 db_notes = mongo_client['tv2_notes']
-db_tasks = mongo_client['tv2_tasks'] # not in use yet
+db_tasks = mongo_client['tv2_tasks']  # not in use yet
 db_users = mongo_client['tv2_users']
 c_users = db_users['users']
 
 
 # other variables:
 noteLog_num_elements: int = 100
+taskLog_num_elements: int = 100
 userLog_num_elements: int = 100
 
 
@@ -117,6 +118,15 @@ def notes_get_all(user_id_str: str):
     return None
 
 
+# RETURN None if error or no docs || list of all docs if exist
+def tasks_get_all(user_id_str: str):
+    collection = db_tasks[user_id_str]
+    response = collection.find()
+    if response:
+        return list(response)
+    return None
+
+
 # RETURN None
 # confirmed working 24/11/12
 def user_update_userLog(key: str, logCode: int, logMessage: str, logTags: list[str]) -> None:
@@ -150,6 +160,123 @@ def user_update_userLog(key: str, logCode: int, logMessage: str, logTags: list[s
         print(str(e))
         utility.log_write(str(e))
         return None
+
+
+# RETURN None if creating task fails || insert_one object if successful
+def task_create(id_str: str, task_obj: dict):
+    try:
+        # first, prep insert object
+        now_time = datetime.now(timezone.utc)
+        task_obj['dateCreated'] = now_time
+        task_obj['taskLog'] = [
+            {
+                'logDate': datetime.now(timezone.utc),
+                'logCode': 0,
+                'logMessage': 'task first created'
+            }
+        ]
+        if task_obj['dateEnd']:
+            task_obj['dateEnd'] = datetime.fromisoformat(task_obj['dateEnd'])
+        if task_obj['dateStart']:
+            task_obj['dateStart'] = datetime.fromisoformat(task_obj['dateStart'])
+        if task_obj['guests']:
+            task_obj['guests'] = task_obj['guests'].split(',')
+        else:
+            task_obj['guests'] = []
+        if task_obj['tags']:
+            task_obj['tags'] = task_obj['tags'].split(',')
+        else:
+            task_obj['tags'] = []
+        if task_obj['intensity'] == "":
+            task_obj['intensity'] = None
+        if task_obj['priority'] == "":
+            task_obj['priority'] = None
+        # push to db
+        collection = db_tasks[id_str]
+        response = collection.insert_one(task_obj)
+        if response and response.acknowledged:
+            return response
+        raise Exception('unable to create note in database...')
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+
+# RETURN None if deleting task fails || delete_one object if successful
+def task_delete(user_id_str: str, task_id_str: str):
+    try:
+        collection = db_tasks[user_id_str]
+        response = collection.delete_one({'_id': ObjectId(task_id_str)})
+        if response and response.acknowledged:
+            return response
+        raise Exception('unable to delete task in database...')
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+
+# RETURN True if task updated || False if any errors encountered
+# confirmed working 24/11/12
+def task_update(user_id_str: str, task_obj: dict) -> bool:
+    try:
+        if task_obj['dateEnd']:
+            task_obj['dateEnd'] = datetime.fromisoformat(task_obj['dateEnd'])
+        if task_obj['dateStart']:
+            task_obj['dateStart'] = datetime.fromisoformat(task_obj['dateStart'])
+        if task_obj['guests']:
+            task_obj['guests'] = task_obj['guests'].split(',')
+        else:
+            task_obj['guests'] = []
+        if task_obj['tags']:
+            task_obj['tags'] = task_obj['tags'].split(',')
+        else:
+            task_obj['tags'] = []
+        if task_obj['intensity'] == "":
+            task_obj['intensity'] = None
+        if task_obj['priority'] == "":
+            task_obj['priority'] = None
+        collection = db_tasks[user_id_str]
+        response = collection.update_one({'_id': ObjectId(task_obj['id'])}, {
+            '$set': {
+                'title': task_obj['title'],
+                'color': task_obj['color'],
+                'guests': task_obj['guests'],
+                'intensity': task_obj['intensity'],
+                'location': task_obj['location'],
+                'priority': task_obj['priority'],
+                'tags': task_obj['tags'],
+                'text': task_obj['text']
+            },
+            '$push': {
+                'taskLog': {
+                    'logDate': datetime.now(timezone.utc),
+                    'logCode': 0,
+                    'logMessage': 'task updated'
+                }
+            }
+        })
+        # check if userLog updated
+        if not response.acknowledged:
+            raise Exception('Unable to update userLog with new logEvent')
+        # check size of userLog and pop oldest element if too many elements
+        response = collection.aggregate([
+            {'$match': {'_id': ObjectId(task_obj['id'])}},
+            {'$project': {'_id': 0, 'taskLog_size': {'$size': '$taskLog'}}}
+        ])
+        if response:
+            response = list(response)
+            if len(response) > 0 and response[0]['taskLog_size'] > taskLog_num_elements:
+                response = collection.update_one({'_id': ObjectId(task_obj['id'])}, {'$pop': {'taskLog': -1}})
+                if not response.acknowledged:
+                    raise Exception('Unable to update taskLog by popping earliest logEvent')
+        return True
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return False
+
 
 
 # RETURN None if user not found || User object if found
