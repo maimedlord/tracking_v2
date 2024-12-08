@@ -221,6 +221,8 @@ def task_delete(user_id_str: str, task_id_str: str):
 # confirmed working 24/11/12
 def task_update(user_id_str: str, task_obj: dict) -> bool:
     try:
+        print('here')
+        print(task_obj)
         if task_obj['dateEnd']:
             task_obj['dateEnd'] = datetime.fromisoformat(task_obj['dateEnd'])
         if task_obj['dateStart']:
@@ -237,17 +239,21 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
             task_obj['intensity'] = None
         if task_obj['priority'] == "":
             task_obj['priority'] = None
+        print('here')
         collection = db_tasks[user_id_str]
         response = collection.update_one({'_id': ObjectId(task_obj['id'])}, {
             '$set': {
-                'title': task_obj['title'],
                 'color': task_obj['color'],
+                'description': task_obj['description'],
+                'dateEnd': task_obj['dateEnd'],
+                'dateStart': task_obj['dateStart'],
                 'guests': task_obj['guests'],
                 'intensity': task_obj['intensity'],
                 'location': task_obj['location'],
                 'priority': task_obj['priority'],
                 'tags': task_obj['tags'],
-                'text': task_obj['text']
+                'text': task_obj['text'],
+                'title': task_obj['title']
             },
             '$push': {
                 'taskLog': {
@@ -257,6 +263,7 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
                 }
             }
         })
+        print(response)
         # check if userLog updated
         if not response.acknowledged:
             raise Exception('Unable to update userLog with new logEvent')

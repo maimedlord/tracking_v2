@@ -62,7 +62,7 @@
     width: 60%;
 }
 .task_container {
-    border: black 1px solid;
+    border: black 3px solid;
     display: flex;
     flex-direction: column;
     margin-top: 10px;

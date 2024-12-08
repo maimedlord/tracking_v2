@@ -74,10 +74,7 @@ async function delete_task(task_id) {
 function edit_task_popup(task_id) {
     try {
         close_popups();
-        // let note_obj =
-        console.log(TASKS_OBJ);
         let local_task = get_local_task(task_id);
-        console.log(local_task);
         // handle failure
         if (!local_task) {
             throw new Error('local_task returned null...');// exit
@@ -85,6 +82,9 @@ function edit_task_popup(task_id) {
         document.getElementById('update_task_id').value = task_id;
         document.getElementById('update_task_color').value = '#' + local_task['color'];
         document.getElementById('update_task_title').value = local_task['title'];
+        document.getElementById('update_task_datestart').value = local_task['dateStart'];
+        document.getElementById('update_task_dateend').value = local_task['dateEnd'];
+        document.getElementById('update_task_description').value = local_task['description'];
         document.getElementById('update_task_location').value = local_task['location'];
         document.getElementById('update_task_guests').value = local_task['guests'];
         document.getElementById('update_task_intensity').value = local_task['intensity'];
@@ -150,11 +150,11 @@ async function get_tasks() {
             task_container.dataset.textlength = TASKS_OBJ['data'][i]['text'].length;
             task_container.dataset.title = TASKS_OBJ['data'][i]['title'];
             task_container.innerHTML = '<div class="note_menu"><div class="button button_delete" onclick="confirm_delete_popup(\'' + TASKS_OBJ['data'][i]['_id'] + '\')">DELETE</div><div class="button button_edit" onclick="edit_task_popup(\'' + TASKS_OBJ['data'][i]['_id'] + '\')">EDIT</div></div>';
-            task_container.innerHTML += TASKS_OBJ['data'][i]['_id'] + "<br>" + TASKS_OBJ['data'][i]['title'] +
-                "<br>" + TASKS_OBJ['data'][i]['dateCreated'] + "<br>" + TASKS_OBJ['data'][i]['location'] +
-                "<br>" + TASKS_OBJ['data'][i]['intensity'] + "<br>" + TASKS_OBJ['data'][i]['tags'] +
-                "<br>" + TASKS_OBJ['data'][i]['text'] + "<br>" + TASKS_OBJ['data'][i]['priority'] +
-                "<br>" + TASKS_OBJ['data'][i]['dateStart'] + "<br>" + TASKS_OBJ['data'][i]['dateEnd'];
+            task_container.innerHTML += TASKS_OBJ['data'][i]['_id'] + "<br>title: " + TASKS_OBJ['data'][i]['title'] + "<br>description: " + TASKS_OBJ['data'][i]['description'] +
+                "<br>dateCreated: " + TASKS_OBJ['data'][i]['dateCreated'] + "<br>location: " + TASKS_OBJ['data'][i]['location'] +
+                "<br>intensity: " + TASKS_OBJ['data'][i]['intensity'] + "<br>tags: " + TASKS_OBJ['data'][i]['tags'] +
+                "<br>text: " + TASKS_OBJ['data'][i]['text'] + "<br>priority: " + TASKS_OBJ['data'][i]['priority'] +
+                "<br>dateStart: " + TASKS_OBJ['data'][i]['dateStart'] + "<br>dateEnd: " + TASKS_OBJ['data'][i]['dateEnd'];
             id_tasks_container.append(task_container);
         }
     } catch (error) {
@@ -168,6 +168,14 @@ id_button_create.onclick=function () {
     try {
         close_popups();
         id_task_create_container.style.display = 'flex';
+    } catch (error) {
+        // Handle errors
+        console.error("There was an error with the fetch request: id_button_delete_no.onclick: ", error);
+    }
+}
+id_button_delete_no.onclick=function () {
+    try {
+        close_popups();
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: id_button_delete_no.onclick: ", error);
@@ -263,24 +271,43 @@ id_button_task_update_submit.onclick = async function () {
     try {
         let id_form_id = document.getElementById('update_task_id');
         let id_form_color = document.getElementById('update_task_color');
-        let id_form_title = document.getElementById('update_task_title');
-        let id_form_location = document.getElementById('update_task_location');
+        let id_form_dateend = document.getElementById('update_task_dateend');
+        let id_form_datestart = document.getElementById('update_task_datestart');
+        let id_form_description = document.getElementById('update_task_description');
+        let id_form_guests = document.getElementById('update_task_guests');
         let id_form_intensity = document.getElementById('update_task_intensity');
+        let id_form_location = document.getElementById('update_task_location');
+        let id_form_priority = document.getElementById('update_task_priority');
         let id_form_tags = document.getElementById('update_task_tags');
         let id_form_text = document.getElementById('update_task_text');
+        let id_form_title = document.getElementById('update_task_title');
         // INPUT VALIDATION
         // task title cannot be blank
         if (id_form_title.value === "") {
             id_task_update_error_message.style.display = 'flex';
             return;
         }
+        // fix dates before populating object
+        let date_end = null;
+        let date_start = null;
+        if (id_form_dateend.value !== "") {
+            date_end = new Date(new Date(id_form_dateend.value) + OFFSET_VALUE).toISOString();
+        }
+        if (id_form_datestart.value !== "") {
+            date_start = new Date(new Date(id_form_datestart.value) + OFFSET_VALUE).toISOString();
+        }
         let task_obj = {
             'id': id_form_id.value,
             'color': id_form_color.value.substring(1, id_form_color.value.length),
             'children': [],
-            'location': id_form_location.value,
+            'description': id_form_description.value,
+            'dateEnd': date_end,
+            'dateStart': date_start,
+            'guests': id_form_guests.value,
             'intensity': id_form_intensity.value,
+            'location': id_form_location.value,
             'parents': [],
+            'priority': id_form_priority.value,
             'tags': id_form_tags.value,
             'text': id_form_text.value,
             'title': id_form_title.value,
