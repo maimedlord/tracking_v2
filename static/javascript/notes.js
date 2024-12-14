@@ -176,51 +176,16 @@ async function get_view_configs(target) {
 }
 
 function sort_notes() {
-    let sorted_arr = Array.from(id_notes_container.childNodes);
-    switch (id_select_sort_by.value) {
-        case 'datecreated,0':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.datecreated.localeCompare(b.dataset.datecreated);
-            });
-            break;
-        case 'datecreated,1':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.datecreated.localeCompare(b.dataset.datecreated) * -1;
-            });
-            break;
-        case 'intensity,0':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.intensity.localeCompare(b.dataset.intensity);
-            });
-            break;
-        case 'intensity,1':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.intensity.localeCompare(b.dataset.intensity) * -1;
-            });
-            break;
-        case 'textlength,0':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.textlength.localeCompare(b.dataset.textlength);
-            });
-            break;
-        case 'textlength,1':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.textlength.localeCompare(b.dataset.textlength) * -1;
-            });
-            break;
-        case 'title,0':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.title.localeCompare(b.dataset.title);
-            });
-            break;
-        case 'title,1':
-            sorted_arr = sorted_arr.sort(function (a, b) {
-                return a.dataset.title.localeCompare(b.dataset.title) * -1;
-            });
-            break;
-        default:
-            console.log('switch case default...');
+    // Skip if no sort value or no children to sort
+    if (!id_select_sort_by.value || !id_notes_container.childNodes.length) {
+        return;
     }
+    let sorted_arr = Array.from(id_notes_container.childNodes);
+    const sort_values = id_select_sort_by.value.split(',');
+    const sortMultiplier = sort_values[1] === '0' ? 1 : -1;
+    sorted_arr = sorted_arr.sort((a, b) => {
+        return a.dataset[sort_values[0]].localeCompare(b.dataset[sort_values[0]]) * sortMultiplier;
+    });
     id_notes_container.innerHTML = '';
     for (let element of sorted_arr) {
         id_notes_container.append(element);

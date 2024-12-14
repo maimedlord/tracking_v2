@@ -163,6 +163,25 @@ async function get_tasks() {
     }
 }
 
+function sort_tasks() {
+    // Skip if no sort value or no children to sort
+    if (!id_select_sort_by.value || !id_tasks_container.childNodes.length) {
+        return;
+    }
+    let sorted_arr = Array.from(id_tasks_container.childNodes);
+    const sort_values = id_select_sort_by.value.split(',');
+    const sortMultiplier = sort_values[1] === '0' ? 1 : -1;
+
+    sorted_arr = sorted_arr.sort((a, b) => {
+        return a.dataset[sort_values[0]].localeCompare(b.dataset[sort_values[0]]) * sortMultiplier;
+    });
+    id_tasks_container.innerHTML = '';
+    for (let element of sorted_arr) {
+        id_tasks_container.append(element);
+    }
+}
+
+
 // onclicks:
 id_button_create.onclick=function () {
     try {
