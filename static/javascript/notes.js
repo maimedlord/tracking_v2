@@ -157,23 +157,23 @@ function get_local_note(note_id) {
     }
 }
 
-async function get_view_configs(target) {
-    try {
-        let url = URL_BASE + '/view_get/' + target
-        // Make an asynchronous GET request to the API
-        const response = await fetch(url, {method: 'GET'});
-        // Check if the response was successful
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        // Parse the JSON data from the response
-        const data = await response.json();
-        VIEWS_OBJ = data.data;
-    } catch (error) {
-        // Handle errors
-        console.error("There was an error with the fetch request: get_notes(): ", error);
-    }
-}
+// async function get_view_configs(target) {
+//     try {
+//         let url = URL_BASE + '/view_get/' + target
+//         // Make an asynchronous GET request to the API
+//         const response = await fetch(url, {method: 'GET'});
+//         // Check if the response was successful
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+//         // Parse the JSON data from the response
+//         const data = await response.json();
+//         VIEWS_OBJ = data.data;
+//     } catch (error) {
+//         // Handle errors
+//         console.error("There was an error with the fetch request: get_notes(): ", error);
+//     }
+// }
 
 function sort_notes() {
     // Skip if no sort value or no children to sort
@@ -192,25 +192,25 @@ function sort_notes() {
     }
 }
 
-async function view_update(view_obj) {
-    try {
-        let url = URL_BASE + '/view_update/' + JSON.stringify(view_obj);
-        // make asynchronous POST request to the API
-        const response = await fetch(url, {method: 'GET'});
-        // check if response was successful
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        // Parse the JSON data from the response
-        const data = await response.json();
-        if (data.status !== 200) {
-            console.log('view_update: ' + data.statusCode);
-        }
-    } catch (error) {
-        // Handle errors
-        console.error("There was an error with the fetch request: view_update: ", error);
-    }
-}
+// async function view_update(view_obj) {
+//     try {
+//         let url = URL_BASE + '/view_update/' + JSON.stringify(view_obj);
+//         // make asynchronous POST request to the API
+//         const response = await fetch(url, {method: 'GET'});
+//         // check if response was successful
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+//         // Parse the JSON data from the response
+//         const data = await response.json();
+//         if (data.status !== 200) {
+//             console.log('view_update: ' + data.statusCode);
+//         }
+//     } catch (error) {
+//         // Handle errors
+//         console.error("There was an error with the fetch request: view_update: ", error);
+//     }
+// }
 
 // onclicks:
 id_button_create.onclick=function () {
@@ -338,50 +338,37 @@ id_button_note_update_submit.onclick=async function () {
     }
 }
 
-id_select_sort_by.onclick=function () {
+id_select_sort_by.onclick = function () {
     try {
-        // exit if no sort selected or no change made to sort (handles onclick behavior)
-        if (id_select_sort_by.value === "" ||
-            (id_select_sort_by.value === last_sort_by)) {
+        // Exit if no sort selected or no change made to sort
+        if (!id_select_sort_by.value || id_select_sort_by.value === last_sort_by) {
             return;
         }
         last_sort_by = id_select_sort_by.value;
-        // sort notes
+        // Sort tasks
         sort_notes();
-        // store view change
-        note_obj = {
-            'notes': {
-                'select_sort_by': id_select_sort_by.value
+        // Store view change
+        const NOTE_KEY = 'notes';
+        const SORT_KEY = 'select_sort_by';
+        const NOTE_OBJ = {
+            [NOTE_KEY]: {
+                [SORT_KEY]: id_select_sort_by.value
             }
-        }
-        view_update(note_obj)
-            .then()
-            .catch(error => console.error("Error in id_select_sort_by.onclick:", error));
+        };
+        view_update(NOTE_OBJ).catch(error =>
+            console.error("Error in id_select_sort_by.onclick:", error)
+        );
     } catch (error) {
-        // Handle errors
-        console.error("There was an error with the fetch request: id_select_sort_by.onclick: ", error);
+        console.error("There was an error in id_select_sort_by.onclick:", error);
     }
-}
+};
 
 // ???
 window.onload=function () {
-    get_notes()
-        .then()
-        .catch(error => console.error("Error in get_notes:", error));
-    get_view_configs('notes')
+    get_notes().catch(error => console.error("Error in get_notes:", error));
+    view_configs_get('notes')
         .then(() => {
-            if (!VIEWS_OBJ) {
-                console.log('VIEWS_OBJ is false');
-                return;
-            }
-            let object_keys = Object.keys(VIEWS_OBJ);
-            for (let i = 0; i < object_keys.length; i++) {
-                let temp_doc = document.getElementById(object_keys[i]);
-                // skip assigning value if id cannot be found
-                if (temp_doc) {
-                    temp_doc.value = VIEWS_OBJ[object_keys[i]];
-                }
-            }
+            view_apply();
             // sort notes
             if (id_select_sort_by.value !== "") {
                 sort_notes();

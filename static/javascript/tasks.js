@@ -353,31 +353,41 @@ id_button_task_update_submit.onclick = async function () {
         console.error("There was an error with the fetch request: id_button_task_update_submit.onclick: ", error);
     }
 }
-
+id_select_sort_by.onclick = function () {
+    try {
+        // Exit if no sort selected or no change made to sort
+        if (!id_select_sort_by.value || id_select_sort_by.value === last_sort_by) {
+            return;
+        }
+        last_sort_by = id_select_sort_by.value;
+        // Sort tasks
+        sort_tasks();
+        // Store view change
+        const TASK_KEY = 'tasks';
+        const SORT_KEY = 'select_sort_by';
+        const TASK_OBJ = {
+            [TASK_KEY]: {
+                [SORT_KEY]: id_select_sort_by.value
+            }
+        };
+        view_update(TASK_OBJ).catch(error =>
+            console.error("Error in id_select_sort_by.onclick:", error)
+        );
+    } catch (error) {
+        console.error("There was an error in id_select_sort_by.onclick:", error);
+    }
+};
 
 // ???
 window.onload=function () {
-    get_tasks()
-        .then()
-        .catch(error => console.error("Error in get_tasks:", error));
-    // get_view_configs('tasks')
-    //     .then(() => {
-    //         if (!VIEWS_OBJ) {
-    //             console.log('VIEWS_OBJ is false');
-    //             return;
-    //         }
-    //         let object_keys = Object.keys(VIEWS_OBJ);
-    //         for (let i = 0; i < object_keys.length; i++) {
-    //             let temp_doc = document.getElementById(object_keys[i]);
-    //             // skip assigning value if id cannot be found
-    //             if (temp_doc) {
-    //                 temp_doc.value = VIEWS_OBJ[object_keys[i]];
-    //             }
-    //         }
-    //         // sort notes
-    //         if (id_select_sort_by.value !== "") {
-    //             sort_notes();
-    //         }
-    //     })
-    //     .catch(error => console.error("Error in get_view_configs:", error));
+    get_tasks().catch(error => console.error("Error in get_tasks:", error));
+    view_configs_get('tasks')
+        .then(() => {
+            view_apply();
+            // sort tasks
+            if (id_select_sort_by.value !== "") {
+                sort_tasks();
+            }
+        })
+        .catch(error => console.error("Error in view_configs_get:", error));
 }

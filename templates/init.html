@@ -13,6 +13,12 @@
 <body>
 <div id="nav">
     <div>
+        <a href="{{ url_for('login') }}">login</a>
+    </div>
+    <div>
+        <a href="{{ url_for('logout') }}">logout</a>
+    </div>
+    <div>
         <a href="{{ url_for('notes') }}">notes</a>
     </div>
     <div>
@@ -21,6 +27,7 @@
 </div>
 {% block body %}
 {% endblock %}
+<script src="{{ url_for('static', filename='javascript/init.js') }}"></script>
 {% block javascript_footer %}
 {% endblock %}
 </body>

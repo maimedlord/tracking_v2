@@ -343,7 +343,7 @@ def api_view_get(target):
         response = db.view_get(current_user.id_str, target)
         print(response)
         if response:
-            response = response['view_configs']['notes']
+            response = response['view_configs'][target]
             return json.dumps({
                 'status': 'success',
                 'statusCode': 200,

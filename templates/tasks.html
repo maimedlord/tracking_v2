@@ -101,6 +101,26 @@
 {#  ...  #}
     <div id="tasks_menu">
         <div class="button" id="button_create">create</div>
+        <div>
+            sort by:
+            <select id="select_sort_by" name="select_sort_by" title="select_sort_by">
+                <option disabled selected value="">sort by...</option>
+                <option value="datecreated,0">date created ascending</option>
+                <option value="datecreated,1">date created descending</option>
+                <option value="datestart,0">date start ascending</option>
+                <option value="datestart,1">date start descending</option>
+                <option value="dateend,0">date end ascending</option>
+                <option value="dateend,1">date end descending</option>
+                <option value="intensity,0">intensity ascending</option>
+                <option value="intensity,1">intensity descending</option>
+                <option value="priority,0">priority ascending</option>
+                <option value="priority,1">priority descending</option>
+                <option value="textlength,0">text length ascending</option>
+                <option value="textlength,1">text length descending</option>
+                <option value="title,0">title ascending</option>
+                <option value="title,1">title descending</option>
+            </select>
+        </div>
     </div>
     <div id="tasks_container">
         no data loaded...
