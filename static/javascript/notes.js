@@ -62,7 +62,6 @@ async function get_notes() {
         id_notes_container.innerHTML = '';
         // draw the notes
         for (let i = 0; i < NOTES_OBJ['data'].length; i++) {
-            // console.log(NOTES_OBJ.data[i]);
             let note_container = document.createElement('div');
             note_container.className = 'note_container';
             note_container.id = NOTES_OBJ['data'][i]['_id'];
@@ -71,11 +70,21 @@ async function get_notes() {
             note_container.dataset.intensity = NOTES_OBJ['data'][i]['intensity'];
             note_container.dataset.textlength = NOTES_OBJ['data'][i]['text'].length;
             note_container.dataset.title = NOTES_OBJ['data'][i]['title'];
-            note_container.innerHTML = '<div class="note_menu"><div class="button button_delete" onclick="confirm_delete_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">DELETE</div><div class="button button_edit" onclick="edit_note_popup(\'' + NOTES_OBJ['data'][i]['_id'] + '\')">EDIT</div></div>';
-            note_container.innerHTML += NOTES_OBJ['data'][i]['_id'] + "<br>" + NOTES_OBJ['data'][i]['title'] +
-                "<br>" + NOTES_OBJ['data'][i]['dateCreated'] + "<br>" + NOTES_OBJ['data'][i]['location'] +
-                "<br>" + NOTES_OBJ['data'][i]['intensity'] + "<br>" + NOTES_OBJ['data'][i]['tags'] +
-                "<br>" + NOTES_OBJ['data'][i]['text'];
+            note_container.innerHTML = `
+                <div class="note_menu">
+                    <div class="button button_delete" onclick="confirm_delete_popup('${NOTES_OBJ['data'][i]['_id']}')">DELETE</div>
+                    <div class="button button_edit" onclick="edit_note_popup('${NOTES_OBJ['data'][i]['_id']}')">EDIT</div>
+                </div>
+            `;
+            note_container.innerHTML += `
+                <div><b>ID:</b> ${NOTES_OBJ['data'][i]['_id']}</div>
+                <div><b>Title:</b> ${NOTES_OBJ['data'][i]['title']}</div>
+                <div><b>Date Created:</b> ${NOTES_OBJ['data'][i]['dateCreated']}</div>
+                <div><b>Location:</b> ${NOTES_OBJ['data'][i]['location']}</div>
+                <div><b>Intensity:</b> ${NOTES_OBJ['data'][i]['intensity']}</div>
+                <div><b>Tags:</b> ${NOTES_OBJ['data'][i]['tags']}</div>
+                <div><b>Text:</b> ${NOTES_OBJ['data'][i]['text']}</div>
+            `;
             id_notes_container.append(note_container);
         }
     } catch (error) {
@@ -157,24 +166,6 @@ function get_local_note(note_id) {
     }
 }
 
-// async function get_view_configs(target) {
-//     try {
-//         let url = URL_BASE + '/view_get/' + target
-//         // Make an asynchronous GET request to the API
-//         const response = await fetch(url, {method: 'GET'});
-//         // Check if the response was successful
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
-//         // Parse the JSON data from the response
-//         const data = await response.json();
-//         VIEWS_OBJ = data.data;
-//     } catch (error) {
-//         // Handle errors
-//         console.error("There was an error with the fetch request: get_notes(): ", error);
-//     }
-// }
-
 function sort_notes() {
     // Skip if no sort value or no children to sort
     if (!id_select_sort_by.value || !id_notes_container.childNodes.length) {
@@ -182,8 +173,11 @@ function sort_notes() {
     }
     let sorted_arr = Array.from(id_notes_container.childNodes);
     const sort_values = id_select_sort_by.value.split(',');
-    const sortMultiplier = sort_values[1] === '0' ? 1 : -1;
+    const sortMultiplier = sort_values[1] === '0' ? 1 : -1; // thx chatgpt
     sorted_arr = sorted_arr.sort((a, b) => {
+        if (/^\d+$/.test(a.dataset[sort_values[0]])) {
+            return (parseInt(a.dataset[sort_values[0]]) - parseInt(b.dataset[sort_values[0]])) * sortMultiplier;
+        }
         return a.dataset[sort_values[0]].localeCompare(b.dataset[sort_values[0]]) * sortMultiplier;
     });
     id_notes_container.innerHTML = '';
@@ -191,26 +185,6 @@ function sort_notes() {
         id_notes_container.append(element);
     }
 }
-
-// async function view_update(view_obj) {
-//     try {
-//         let url = URL_BASE + '/view_update/' + JSON.stringify(view_obj);
-//         // make asynchronous POST request to the API
-//         const response = await fetch(url, {method: 'GET'});
-//         // check if response was successful
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
-//         // Parse the JSON data from the response
-//         const data = await response.json();
-//         if (data.status !== 200) {
-//             console.log('view_update: ' + data.statusCode);
-//         }
-//     } catch (error) {
-//         // Handle errors
-//         console.error("There was an error with the fetch request: view_update: ", error);
-//     }
-// }
 
 // onclicks:
 id_button_create.onclick=function () {

@@ -149,12 +149,27 @@ async function get_tasks() {
             task_container.dataset.priority = TASKS_OBJ['data'][i]['priority'];
             task_container.dataset.textlength = TASKS_OBJ['data'][i]['text'].length;
             task_container.dataset.title = TASKS_OBJ['data'][i]['title'];
-            task_container.innerHTML = '<div class="note_menu"><div class="button button_delete" onclick="confirm_delete_popup(\'' + TASKS_OBJ['data'][i]['_id'] + '\')">DELETE</div><div class="button button_edit" onclick="edit_task_popup(\'' + TASKS_OBJ['data'][i]['_id'] + '\')">EDIT</div></div>';
-            task_container.innerHTML += TASKS_OBJ['data'][i]['_id'] + "<br>title: " + TASKS_OBJ['data'][i]['title'] + "<br>description: " + TASKS_OBJ['data'][i]['description'] +
-                "<br>dateCreated: " + TASKS_OBJ['data'][i]['dateCreated'] + "<br>location: " + TASKS_OBJ['data'][i]['location'] +
-                "<br>intensity: " + TASKS_OBJ['data'][i]['intensity'] + "<br>tags: " + TASKS_OBJ['data'][i]['tags'] +
-                "<br>text: " + TASKS_OBJ['data'][i]['text'] + "<br>priority: " + TASKS_OBJ['data'][i]['priority'] +
-                "<br>dateStart: " + TASKS_OBJ['data'][i]['dateStart'] + "<br>dateEnd: " + TASKS_OBJ['data'][i]['dateEnd'];
+            task_container.innerHTML = `
+                <div class="note_menu">
+                    <div class="button button_delete" 
+                         onclick="confirm_delete_popup('${TASKS_OBJ['data'][i]['_id']}')">DELETE</div>
+                    <div class="button button_edit" 
+                         onclick="edit_task_popup('${TASKS_OBJ['data'][i]['_id']}')">EDIT</div>
+                </div>
+            `;
+            task_container.innerHTML += `
+                ${TASKS_OBJ['data'][i]['_id']}
+                <div><b>Title:</b> ${TASKS_OBJ['data'][i]['title']}</div>
+                <div><b>Description:</b> ${TASKS_OBJ['data'][i]['description']}</div>
+                <div><b>Date Created:</b> ${TASKS_OBJ['data'][i]['dateCreated']}</div>
+                <div><b>Location:</b> ${TASKS_OBJ['data'][i]['location']}</div>
+                <div><b>Intensity:</b> ${TASKS_OBJ['data'][i]['intensity']}</div>
+                <div><b>Tags:</b> ${TASKS_OBJ['data'][i]['tags']}</div>
+                <div><b>Text:</b> ${TASKS_OBJ['data'][i]['text']}</div>
+                <div><b>Priority:</b> ${TASKS_OBJ['data'][i]['priority']}</div>
+                <div><b>Date Start:</b> ${TASKS_OBJ['data'][i]['dateStart']}</div>
+                <div><b>Date End:</b> ${TASKS_OBJ['data'][i]['dateEnd']}</div>
+            `;
             id_tasks_container.append(task_container);
         }
     } catch (error) {
@@ -170,9 +185,11 @@ function sort_tasks() {
     }
     let sorted_arr = Array.from(id_tasks_container.childNodes);
     const sort_values = id_select_sort_by.value.split(',');
-    const sortMultiplier = sort_values[1] === '0' ? 1 : -1;
-
+    const sortMultiplier = sort_values[1] === '0' ? 1 : -1; // thx chatgpt
     sorted_arr = sorted_arr.sort((a, b) => {
+        if (/^\d+$/.test(a.dataset[sort_values[0]])) {
+            return (parseInt(a.dataset[sort_values[0]]) - parseInt(b.dataset[sort_values[0]])) * sortMultiplier;
+        }
         return a.dataset[sort_values[0]].localeCompare(b.dataset[sort_values[0]]) * sortMultiplier;
     });
     id_tasks_container.innerHTML = '';
@@ -192,6 +209,7 @@ id_button_create.onclick=function () {
         console.error("There was an error with the fetch request: id_button_delete_no.onclick: ", error);
     }
 }
+
 id_button_delete_no.onclick=function () {
     try {
         close_popups();
@@ -200,6 +218,7 @@ id_button_delete_no.onclick=function () {
         console.error("There was an error with the fetch request: id_button_delete_no.onclick: ", error);
     }
 }
+
 id_button_task_create_submit.onclick=async function () {
     try {
         let id_form_color = document.getElementById('create_task_color');
@@ -286,6 +305,7 @@ id_button_task_create_submit.onclick=async function () {
         console.error("There was an error with the fetch request: id_button_task_create_submit.onclick: ", error);
     }
 }
+
 id_button_task_update_submit.onclick = async function () {
     try {
         let id_form_id = document.getElementById('update_task_id');
@@ -353,6 +373,7 @@ id_button_task_update_submit.onclick = async function () {
         console.error("There was an error with the fetch request: id_button_task_update_submit.onclick: ", error);
     }
 }
+
 id_select_sort_by.onclick = function () {
     try {
         // Exit if no sort selected or no change made to sort

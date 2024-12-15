@@ -17,7 +17,6 @@ function view_apply() {
 
 async function view_configs_get(target) {
     try {
-        console.log('the target is: ', target);
         let url = API_URL_BASE + '/view_get/' + target
         // Make an asynchronous GET request to the API
         const response = await fetch(url, {method: 'GET'});
