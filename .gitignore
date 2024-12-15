@@ -3,3 +3,4 @@ logs
 venv
 *.zip
 *.7z
+*.~vsdx
