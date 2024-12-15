@@ -170,7 +170,13 @@ def task_create(id_str: str, task_obj: dict):
         task_obj['dateCreated'] = now_time
         task_obj['seriesLog'] = []
         #   {
+        #       'color': '',
+        #       'dateEndNew':, datetime,
+        #       'dateStartNew': datetime,
         #       'dateUpdated': datetime,
+        #       'guests': '',
+        #       'intensity': n,
+        #       'location': '',
         #       'sequenceNum': n, (1..n)
         #       'status': '(completed)|(open)|(skipped)',
         #       'note': '',
