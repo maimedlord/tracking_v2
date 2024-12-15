@@ -4,6 +4,7 @@ let id_button_delete_no = document.getElementById('button_delete_no');
 let id_button_delete_yes = document.getElementById('button_delete_yes');
 let id_button_task_create_submit = document.getElementById('button_task_create_submit');
 let id_button_task_update_submit = document.getElementById('button_task_update_submit');
+let id_calendar_view = document.getElementById('calendar_view');
 let id_task_create_container = document.getElementById('task_create_container');
 let id_task_create_error_message = document.getElementById('task_create_error_message');
 let id_task_confirm_delete_container = document.getElementById('task_confirm_delete_container');
@@ -11,6 +12,9 @@ let id_task_edit_container = document.getElementById('task_edit_container');
 let id_task_update_error_message = document.getElementById('task_update_error_message');
 let id_tasks_container = document.getElementById('tasks_container');
 let id_select_sort_by = document.getElementById('select_sort_by');
+
+// calendar variables
+const week_array = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // other variables
 let last_sort_by = '';
@@ -87,10 +91,10 @@ function edit_task_popup(task_id) {
         document.getElementById('update_task_description').value = local_task['description'];
         document.getElementById('update_task_location').value = local_task['location'];
         document.getElementById('update_task_guests').value = local_task['guests'];
-        document.getElementById('update_task_intensity').value = local_task['intensity'];
+        // document.getElementById('update_task_intensity').value = local_task['intensity'];
         document.getElementById('update_task_priority').value = local_task['priority'];
-        // document.getElementById('update_task_reminder').value = local_task['reminder'];
-        // document.getElementById('update_task_repeat').value = local_task['repeat'];
+        document.getElementById('update_task_reminder').value = local_task['reminder'];
+        document.getElementById('update_task_repeat').value = local_task['repeat'];
         document.getElementById('update_task_tags').value = local_task['tags'];
         document.getElementById('update_task_text').value = local_task['text'];
         id_task_edit_container.style.display = 'flex';
@@ -145,7 +149,6 @@ async function get_tasks() {
             task_container.dataset.datecreated = TASKS_OBJ['data'][i]['dateCreated'];
             task_container.dataset.dateend = TASKS_OBJ['data'][i]['dateEnd'];
             task_container.dataset.datestart = TASKS_OBJ['data'][i]['dateStart'];
-            task_container.dataset.intensity = TASKS_OBJ['data'][i]['intensity'];
             task_container.dataset.priority = TASKS_OBJ['data'][i]['priority'];
             task_container.dataset.textlength = TASKS_OBJ['data'][i]['text'].length;
             task_container.dataset.title = TASKS_OBJ['data'][i]['title'];
@@ -163,12 +166,14 @@ async function get_tasks() {
                 <div><b>Description:</b> ${TASKS_OBJ['data'][i]['description']}</div>
                 <div><b>Date Created:</b> ${TASKS_OBJ['data'][i]['dateCreated']}</div>
                 <div><b>Location:</b> ${TASKS_OBJ['data'][i]['location']}</div>
-                <div><b>Intensity:</b> ${TASKS_OBJ['data'][i]['intensity']}</div>
                 <div><b>Tags:</b> ${TASKS_OBJ['data'][i]['tags']}</div>
                 <div><b>Text:</b> ${TASKS_OBJ['data'][i]['text']}</div>
                 <div><b>Priority:</b> ${TASKS_OBJ['data'][i]['priority']}</div>
                 <div><b>Date Start:</b> ${TASKS_OBJ['data'][i]['dateStart']}</div>
                 <div><b>Date End:</b> ${TASKS_OBJ['data'][i]['dateEnd']}</div>
+                <div><b>reminder:</b> ${TASKS_OBJ['data'][i]['reminder']}</div>
+                <div><b>repeat:</b> ${TASKS_OBJ['data'][i]['repeat']}</div>
+                <div><b>recordedTasks log drop down goes here</b></div>
             `;
             id_tasks_container.append(task_container);
         }
@@ -198,6 +203,57 @@ function sort_tasks() {
     }
 }
 
+// calendar functions
+function draw_month(month, year) {
+    try {
+        // prep
+        let started_day_nums = false;
+        let days_in_month = get_days_in_month(month, year);
+        let written_day = 1;
+        //
+        for (let row = 0; row < 5; row++) {
+            let temp_row_div = document.createElement('div');
+            temp_row_div.className = 'calendar_month_week'
+            temp_row_div.id = 'calendar_month_week' + row.toString();
+            for (let col = 0; col < 7; col++) {
+                //
+                if (!started_day_nums && col === get_weekday_of_month(month, year)) {
+                    started_day_nums = true;
+                }
+                //
+                let temp_day_div = document.createElement('div');
+                temp_day_div.id = 'month' + row.toString() + col.toString();
+                temp_day_div.className = 'calendar_month_day';
+                temp_day_div.textContent += week_array[col] + ' ';
+                if (started_day_nums) {
+                    if (written_day <= days_in_month) {
+                        temp_day_div.textContent += written_day.toString();
+                        written_day++;
+                    }
+                }
+                temp_row_div.append(temp_day_div);
+            }
+            id_calendar_view.append(temp_row_div);
+        }
+    } catch (error) {
+        // Handle errors
+        console.error("There was an error in: draw_month(): ", error);
+    }
+
+}
+
+// RETURN number of days in month: 28..31
+function get_days_in_month(month, year) {
+    // Month is zero-based: January = 0, December = 11
+    return new Date(year, month + 1, 0).getDate();
+}
+
+// RETURN day of week: 0..6 starting with Sunday
+function get_weekday_of_month(month, year) {
+    // Month is zero-based: January = 0, December = 11
+    const firstDay = new Date(year, month, 1);
+    return firstDay.getDay();
+}
 
 // onclicks:
 id_button_create.onclick=function () {
@@ -226,10 +282,12 @@ id_button_task_create_submit.onclick=async function () {
         let id_form_datestart = document.getElementById('create_task_datestart');
         let id_form_description = document.getElementById('create_task_description');
         let id_form_guests = document.getElementById('create_task_guests');
-        let id_form_intensity = document.getElementById('create_task_intensity');
+        // let id_form_intensity = document.getElementById('create_task_intensity');
         let id_form_location = document.getElementById('create_task_location');
         let id_form_priority = document.getElementById('create_task_priority');
-        let id_form_status = document.getElementById('create_task_status');
+        let id_form_reminder = document.getElementById('create_task_reminder');
+        let id_form_repeat = document.getElementById('create_task_repeat');
+        // let id_form_status = document.getElementById('create_task_status');
         let id_form_tags = document.getElementById('create_task_tags');
         let id_form_title = document.getElementById('create_task_title');
         let id_form_text = document.getElementById('create_task_text');
@@ -261,13 +319,13 @@ id_button_task_create_submit.onclick=async function () {
             'dateStart': date_start,
             'description': id_form_description.value,
             'guests': id_form_guests.value,
-            'intensity': id_form_intensity.value,
+            // 'intensity': id_form_intensity.value,
             'location': id_form_location.value,
             'parents': [],
             'priority': id_form_priority.value,
-            'reminder': '',
-            'repeat': '',
-            'status': id_form_status.value,
+            'reminder': id_form_reminder.value,
+            'repeat': id_form_repeat.value,
+            // 'status': id_form_status.value,
             'tags': id_form_tags.value,
             'text': id_form_text.value,
             'title': id_form_title.value,
@@ -293,10 +351,10 @@ id_button_task_create_submit.onclick=async function () {
         id_form_datestart.value = '';
         id_form_description.value = '';
         id_form_guests.value = '';
-        id_form_intensity.value = '';
+        // id_form_intensity.value = '';
         id_form_location.value = '';
         id_form_priority.value = '';
-        id_form_status.value = '';
+        // id_form_status.value = '';
         id_form_tags.value = '';
         id_form_title.value = '';
         id_form_text.value = '';
@@ -317,9 +375,10 @@ id_button_task_update_submit.onclick = async function () {
         let id_form_datestart = document.getElementById('update_task_datestart');
         let id_form_description = document.getElementById('update_task_description');
         let id_form_guests = document.getElementById('update_task_guests');
-        let id_form_intensity = document.getElementById('update_task_intensity');
         let id_form_location = document.getElementById('update_task_location');
         let id_form_priority = document.getElementById('update_task_priority');
+        let id_form_reminder = document.getElementById('update_task_reminder');
+        let id_form_repeat = document.getElementById('update_task_repeat');
         let id_form_tags = document.getElementById('update_task_tags');
         let id_form_text = document.getElementById('update_task_text');
         let id_form_title = document.getElementById('update_task_title');
@@ -346,10 +405,11 @@ id_button_task_update_submit.onclick = async function () {
             'dateEnd': date_end,
             'dateStart': date_start,
             'guests': id_form_guests.value,
-            'intensity': id_form_intensity.value,
             'location': id_form_location.value,
             'parents': [],
             'priority': id_form_priority.value,
+            'reminder': id_form_reminder.value,
+            'repeat': id_form_repeat.value,
             'tags': id_form_tags.value,
             'text': id_form_text.value,
             'title': id_form_title.value,
@@ -412,6 +472,7 @@ window.onload=function () {
             if (id_select_sort_by.value !== "") {
                 sort_tasks();
             }
+            draw_month(11, 2024);
         })
         .catch(error => console.error("Error in view_configs_get:", error));
 }

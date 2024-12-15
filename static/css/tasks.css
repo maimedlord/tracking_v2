@@ -29,17 +29,33 @@
     color: white;
     width: 40px;
 }
-.close_confirm_container {
-    align-items: center;
-    display: flex;
-    flex-direction: row-reverse;
-    width: 100%;
-}
 .button_close_x {
     border: black 1px solid;
     box-shadow: black 2px 2px;
     padding: 4px;
     width: 15px ;
+}
+#calendar_container {
+    background-color: aliceblue;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.calendar_month_day {
+    background-color: aquamarine;
+    border: black solid 1px;
+    min-height: 90px;
+    width: 100%;
+}
+.calendar_month_week {
+    display: flex;
+    flex-direction: row;
+}
+.close_confirm_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
 }
 #menu_confirm_delete_container {
     align-items: center;

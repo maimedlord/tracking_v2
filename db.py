@@ -127,57 +127,20 @@ def tasks_get_all(user_id_str: str):
     return None
 
 
-# RETURN None
-# confirmed working 24/11/12
-def user_update_userLog(key: str, logCode: int, logMessage: str, logTags: list[str]) -> None:
-    try:
-        key_type: str = ''
-        if '@' in key:
-            key_type = 'email'
-        else:
-            key_type = '_id'
-            key = ObjectId(key)
-        response = c_users.update_one({key_type: key}, {"$push": {"userLog": {
-            'logCode': logCode,
-            'logDate': datetime.now(timezone.utc),
-            'logMessage': logMessage,
-            'logTags': logTags,
-        }}})
-        # check if userLog updated
-        if not response.acknowledged:
-            raise Exception('Unable to update userLog with new logEvent')
-        # check size of userLog and pop oldest element if too many elements
-        response = list(c_users.aggregate([
-            {'$match': {key_type: key}},
-            {'$project': {'_id': 0, 'userLog_size': {'$size': '$userLog'}}}
-        ]))
-        if response and response[0]['userLog_size'] > userLog_num_elements:
-            response = c_users.update_one({key_type: key}, {'$pop': {'userLog': -1}})
-            if not response.acknowledged:
-                raise Exception('Unable to update userLog by popping earliest logEvent')
-        return None
-    except Exception as e:
-        print(str(e))
-        utility.log_write(str(e))
-        return None
-
-
 # RETURN None if creating task fails || insert_one object if successful
 def task_create(id_str: str, task_obj: dict):
     try:
         # first, prep insert object
         now_time = datetime.now(timezone.utc)
         task_obj['dateCreated'] = now_time
-        task_obj['seriesLog'] = []
+        task_obj['recordedTasks'] = []
         #   {
         #       'color': '',
-        #       'dateEndNew':, datetime,
-        #       'dateStartNew': datetime,
+        #       'dateScheduled':, datetime,
         #       'dateUpdated': datetime,
-        #       'guests': '',
-        #       'intensity': n,
+        #       'guests': [],
+        #       'intensity': n|null,
         #       'location': '',
-        #       'sequenceNum': n, (1..n)
         #       'status': '(completed)|(open)|(skipped)',
         #       'note': '',
         #       'tags': []
@@ -201,10 +164,10 @@ def task_create(id_str: str, task_obj: dict):
             task_obj['tags'] = task_obj['tags'].split(',')
         else:
             task_obj['tags'] = []
-        if task_obj['intensity'] == "":
-            task_obj['intensity'] = None
         if task_obj['priority'] == "":
             task_obj['priority'] = None
+        else:
+            task_obj['priority'] = int(task_obj['priority'])
         # alphabetize the object before inserting
         temp_dict =  dict(sorted(task_obj.items()))
         # push to db
@@ -237,8 +200,6 @@ def task_delete(user_id_str: str, task_id_str: str):
 # confirmed working 24/11/12
 def task_update(user_id_str: str, task_obj: dict) -> bool:
     try:
-        print('here')
-        print(task_obj)
         if task_obj['dateEnd']:
             task_obj['dateEnd'] = datetime.fromisoformat(task_obj['dateEnd'])
         if task_obj['dateStart']:
@@ -251,11 +212,10 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
             task_obj['tags'] = task_obj['tags'].split(',')
         else:
             task_obj['tags'] = []
-        if task_obj['intensity'] == "":
-            task_obj['intensity'] = None
+        # if task_obj['intensity'] == "":
+        #     task_obj['intensity'] = None
         if task_obj['priority'] == "":
             task_obj['priority'] = None
-        print('here')
         collection = db_tasks[user_id_str]
         response = collection.update_one({'_id': ObjectId(task_obj['id'])}, {
             '$set': {
@@ -264,7 +224,7 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
                 'dateEnd': task_obj['dateEnd'],
                 'dateStart': task_obj['dateStart'],
                 'guests': task_obj['guests'],
-                'intensity': task_obj['intensity'],
+                # 'intensity': task_obj['intensity'],
                 'location': task_obj['location'],
                 'priority': task_obj['priority'],
                 'tags': task_obj['tags'],
@@ -300,6 +260,40 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
         utility.log_write(str(e))
         return False
 
+
+# RETURN None
+# confirmed working 24/11/12
+def user_update_userLog(key: str, logCode: int, logMessage: str, logTags: list[str]) -> None:
+    try:
+        key_type: str = ''
+        if '@' in key:
+            key_type = 'email'
+        else:
+            key_type = '_id'
+            key = ObjectId(key)
+        response = c_users.update_one({key_type: key}, {"$push": {"userLog": {
+            'logCode': logCode,
+            'logDate': datetime.now(timezone.utc),
+            'logMessage': logMessage,
+            'logTags': logTags,
+        }}})
+        # check if userLog updated
+        if not response.acknowledged:
+            raise Exception('Unable to update userLog with new logEvent')
+        # check size of userLog and pop oldest element if too many elements
+        response = list(c_users.aggregate([
+            {'$match': {key_type: key}},
+            {'$project': {'_id': 0, 'userLog_size': {'$size': '$userLog'}}}
+        ]))
+        if response and response[0]['userLog_size'] > userLog_num_elements:
+            response = c_users.update_one({key_type: key}, {'$pop': {'userLog': -1}})
+            if not response.acknowledged:
+                raise Exception('Unable to update userLog by popping earliest logEvent')
+        return None
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
 
 
 # RETURN None if user not found || User object if found
