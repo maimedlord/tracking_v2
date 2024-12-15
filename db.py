@@ -168,6 +168,14 @@ def task_create(id_str: str, task_obj: dict):
         # first, prep insert object
         now_time = datetime.now(timezone.utc)
         task_obj['dateCreated'] = now_time
+        task_obj['seriesLog'] = []
+        #   {
+        #       'dateUpdated': datetime,
+        #       'sequenceNum': n, (1..n)
+        #       'status': '(completed)|(open)|(skipped)',
+        #       'note': '',
+        #       'tags': []
+        #   }
         task_obj['taskLog'] = [
             {
                 'logDate': datetime.now(timezone.utc),
@@ -191,9 +199,11 @@ def task_create(id_str: str, task_obj: dict):
             task_obj['intensity'] = None
         if task_obj['priority'] == "":
             task_obj['priority'] = None
+        # alphabetize the object before inserting
+        temp_dict =  dict(sorted(task_obj.items()))
         # push to db
         collection = db_tasks[id_str]
-        response = collection.insert_one(task_obj)
+        response = collection.insert_one(temp_dict)
         if response and response.acknowledged:
             return response
         raise Exception('unable to create note in database...')

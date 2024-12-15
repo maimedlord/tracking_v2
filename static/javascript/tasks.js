@@ -229,6 +229,7 @@ id_button_task_create_submit.onclick=async function () {
         let id_form_intensity = document.getElementById('create_task_intensity');
         let id_form_location = document.getElementById('create_task_location');
         let id_form_priority = document.getElementById('create_task_priority');
+        let id_form_status = document.getElementById('create_task_status');
         let id_form_tags = document.getElementById('create_task_tags');
         let id_form_title = document.getElementById('create_task_title');
         let id_form_text = document.getElementById('create_task_text');
@@ -266,6 +267,7 @@ id_button_task_create_submit.onclick=async function () {
             'priority': id_form_priority.value,
             'reminder': '',
             'repeat': '',
+            'status': id_form_status.value,
             'tags': id_form_tags.value,
             'text': id_form_text.value,
             'title': id_form_title.value,
@@ -294,6 +296,7 @@ id_button_task_create_submit.onclick=async function () {
         id_form_intensity.value = '';
         id_form_location.value = '';
         id_form_priority.value = '';
+        id_form_status.value = '';
         id_form_tags.value = '';
         id_form_title.value = '';
         id_form_text.value = '';
