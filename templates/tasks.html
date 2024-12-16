@@ -75,10 +75,44 @@
         </div>
         <div id="task_one_or_series">
             <span id="task_choose_one">edit this task</span>
-            <span id="task_choose_series">edit the series</span>
+            <span id="task_choose_series">edit the master/series</span>
         </div>
         <div id="task_edit_one">
-            edit one stuff here...
+            <div class="popup" id="t_update_error_message">
+                the title cannot be blank
+            </div>
+            <form id="form_update_t" name="form_update_t">
+                <input id="update_t_id" name="update_task_id" type="hidden">
+                <label for="update_t_datestart">start time:</label><br>
+                <input id="update_t_datestart" name="update_t_datestart" type="datetime-local"><br>
+                <label for="update_t_dateend">end time:</label><br>
+                <input id="update_t_dateend" name="update_t_dateend" type="datetime-local"><br>
+                <label for="update_t_location">location:</label><br>
+                <input id="update_t_location" name="update_t_location" size="50" type="text"><br>
+                <label for="update_t_guests">guests:</label><br>
+                <input id="update_t_guests" name="update_t_guests" size="50" type="text"><br>
+                <label for="update_t_intensity">intensity:</label><br>
+                <input id="update_t_intensity" max="100" min="0" name="update_t_intensity" size="50" type="number"><br>
+{#                <label for="update_t_priority">priority:</label><br>#}
+{#                <input id="update_t_priority" max="100" min="0" name="update_t_priority" size="50" type="number"><br>#}
+                <label for="update_t_status">status:</label><br>
+                <select id="update_t_status" name="update_t_status" >
+                    <option value="closed">closed</option>
+                    <option value="completed">completed</option>
+                    <option value="deleted">deleted</option>
+                    <option value="open" selected>open</option>
+                    <option value="skipped">skipped</option>
+                </select><br>
+                <label for="update_t_tags">tags <i>comma separated</i>:</label><br>
+                <input id="update_t_tags" name="update_t_tags" size="50" type="text"><br>
+{#                <label for="update_t_text">text:</label><br>#}
+{#                <input id="update_t_text" name="update_t_text" size="50" type="text">#}
+                <b>!!! a note object tied to this subtask would go here...</b>
+                <br>
+                <label for="update_t_note">note:</label><br>
+                <input id="update_t_note" name="update_t_note" size="50" type="text"><br>
+                <button type="button" id="button_t_update_submit">update t</button>
+            </form>
         </div>
         <div id="task_edit_series">
             <div class="popup" id="task_update_error_message">

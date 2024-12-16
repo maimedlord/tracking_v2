@@ -118,6 +118,11 @@ def notes_get_all(user_id_str: str):
     return None
 
 
+# RETURN
+def t_update(user_id_str: str, t_obj: dict):
+    pass
+
+
 # RETURN None if error or no docs || list of all docs if exist
 def tasks_get_all(user_id_str: str):
     collection = db_tasks[user_id_str]

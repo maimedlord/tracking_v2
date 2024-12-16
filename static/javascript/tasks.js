@@ -2,6 +2,7 @@
 let id_button_create = document.getElementById('button_create');
 let id_button_delete_no = document.getElementById('button_delete_no');
 let id_button_delete_yes = document.getElementById('button_delete_yes');
+let id_button_t_update_submit = document.getElementById('button_t_update_submit');
 let id_button_task_create_submit = document.getElementById('button_task_create_submit');
 let id_button_task_update_submit = document.getElementById('button_task_update_submit');
 let id_calendar_view = document.getElementById('calendar_view');
@@ -82,12 +83,15 @@ async function delete_task(task_id) {
 function edit_task_popup(task_id) {
     try {
         close_popups();
-        let local_task = get_local_task(task_id);
+        //
+        // split date from id if it's there
+        let id_and_date = task_id.split(',');
+        let local_task = get_local_task(id_and_date[0]);
         // handle failure
         if (!local_task) {
             throw new Error('local_task returned null...');// exit
         }
-        document.getElementById('update_task_id').value = task_id;
+        document.getElementById('update_task_id').value = id_and_date[0];
         document.getElementById('update_task_color').value = '#' + local_task['color'];
         document.getElementById('update_task_title').value = local_task['title'];
         document.getElementById('update_task_datestart').value = local_task['dateStart'];
@@ -102,21 +106,27 @@ function edit_task_popup(task_id) {
         document.getElementById('update_task_tags').value = local_task['tags'];
         document.getElementById('update_task_text').value = local_task['text'];
         id_task_edit_container.style.display = 'flex';
+        // skip if no date, else draw 'this' task
+        console.log(id_and_date);
+        if (id_and_date.length !== 3) {
+            return;
+        }
+        // first, check if exists in recordedTasks and populate with the data if so
+        // NEED
+        document.getElementById('update_t_id').value = task_id;
+        document.getElementById('update_t_datestart').value = id_and_date[1];
+        // handle potential dateend nulls
+        if (id_and_date[2] !== 'null') {
+            document.getElementById('update_t_dateend').value = id_and_date[2];
+        }
+        else {
+            document.getElementById('update_t_dateend').value = '';
+        }
+        // NEED notes object implementation
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: edit_task_popup(): ", error);
     }
-}
-
-function edit_task_series_popup(series_id) {
-    // split the series_id into the task id and the series task date:
-    let id_and_date = series_id.split(',');
-    // quick validation before processing:
-    if (id_and_date.length !== 2) {
-        return;
-    }
-    // check if this exists in recordedTasks and pull from there if so
-
 }
 
 // RETURN null if no local task found || task object if found
@@ -267,10 +277,11 @@ function draw_month(month, year) {
         let temp_obj = TASKS_OBJ['data'];
         for (let i = 0; i < temp_obj.length; i++) {
             let start_date = new Date(temp_obj[i]['dateStart']);
+            let end_date = new Date(temp_obj[i]['dateEnd']);
             // first, draw what is recorded in recordedTasks array
             if (temp_obj[i]['recordedTasks'].length > 0) {
-                console.log(temp_obj[i]['recordedTasks']);
-                console.log('gonna draw me some recordedTasks i am...');
+                // console.log(temp_obj[i]['recordedTasks']);
+                // console.log('gonna draw me some recordedTasks i am...');
             }
             // skip drawing task if no start date or if start date already in recordedTasks
             // NEED to add check if start date in recordedTasks
@@ -280,63 +291,69 @@ function draw_month(month, year) {
             // for each one check if recordedTasks already has it and pass if it does...
             // ...
             let repeat_values = temp_obj[i]['repeat'].split(',');
-            console.log('repeat values');
-            console.log(repeat_values);
+            // console.log('repeat values');
+            // console.log(repeat_values);
             // handle tasks with no repeat set up
             if (repeat_values.length === 1) {
                 let day_element = document.getElementById('month' + start_date.getDate().toString());
                 let temp_div = document.createElement('div');
-                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'];
-                temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
+                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
+                temp_div.onclick = () => edit_task_popup(temp_div.id);
                 temp_div.style.borderColor = '#' + temp_obj[i]['color'];
                 temp_div.style.borderStyle = 'solid';
                 temp_div.innerText = temp_obj[i]['title'];
                 day_element.append(temp_div);
                 continue;
             }
-            // handle daily repeat
+            /// handle daily repeat
             if (repeat_values[0] === 'daily') {
                 console.log(repeat_values[0]);
                 // handle never
-                if (repeat_values[2] === 'never') {} // NEEDS
+                if (repeat_values[2] === 'never') { // NEEDS
+
+                }
+                // handle n occurrences
                 if (is_all_digits(repeat_values[2])) {
-                    let occurences = parseInt(repeat_values[2]);
+                    let occurrences = parseInt(repeat_values[2]);
                     let skip_amt = parseInt(repeat_values[1]);
                     // let start_date = new Date(temp_obj[i]['dateStart']);
                     let last_date = new Date(start_date);
-                    last_date.setDate(last_date.getDate() + (skip_amt * occurences));
+                    last_date.setDate(last_date.getDate() + (skip_amt * occurrences));
                     // skip if task end date is before this month
                     if (last_date < month_first_moment) {
                         console.log('the last date of the series was before this months first moment');
                         continue;
                     }
-                    console.log('occurences: ', occurences.toString());
+                    console.log('occurrences: ', occurrences.toString());
                     // process n number of tasks in the series and print if in this month
-                    for (let ii = 0; ii < occurences; ii++) {
+                    for (let ii = 0; ii < occurrences; ii++) {
                         console.log(temp_obj[i]['title']);
-                        let temp_date = new Date(start_date);
-                        temp_date.setDate(temp_date.getDate() + (skip_amt * ii));
-                        console.log('new date in series below');
-                        console.log(temp_date);
+                        let temp_start_date = new Date(start_date);
+                        let temp_end_date = new Date(end_date);
+                        temp_start_date.setDate(temp_start_date.getDate() + (skip_amt * ii));
+                        temp_end_date.setDate(temp_end_date.getDate() + (skip_amt * ii));
+                        // console.log('new date in series below');
+                        // console.log(temp_start_date);
                         // break out of loop if task in series is past this month
-                        if (temp_date > month_last_moment) {
-                            console.log('task in series after this month');
+                        if (temp_start_date > month_last_moment) {
+                            // console.log('task in series after this month');
                             break;
                         }
                         // skip if task in series is before this month
-                        if (temp_date < month_first_moment) {
-                            console.log('task in series before this month');
+                        if (temp_start_date < month_first_moment) {
+                            // console.log('task in series before this month');
                             continue;
                         }
                         // check against recordedTasks to see if already there...
 
                         //
-                        let month_day = temp_date.getDate();
+                        let month_day = temp_start_date.getDate();
                         let day_element = document.getElementById('month' + month_day.toString());
                         console.log(day_element);
                         let temp_div = document.createElement('div');
-                        temp_div.id = temp_obj[i]['_id'] + ',' + temp_date.toISOString();
-                        temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
+                        temp_div.id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5) + ',' +
+                            temp_end_date.toISOString().slice(0, -5);
+                        temp_div.onclick = () => edit_task_popup(temp_div.id);
                         temp_div.style.borderColor = '#' + temp_obj[i]['color'];
                         temp_div.style.borderStyle = 'solid';
                         temp_div.innerText = temp_obj[i]['title'];
@@ -491,6 +508,18 @@ id_button_task_create_submit.onclick=async function () {
         // Handle errors
         console.error("There was an error with the fetch request: id_button_task_create_submit.onclick: ", error);
     }
+}
+
+id_button_t_update_submit.onclick=async  function () {
+    let id_form_id = document.getElementById('update_t_id');
+    let id_form_dateend = document.getElementById('update_t_dateend');
+    let id_form_datestart = document.getElementById('update_t_datestart');
+    let id_form_guests = document.getElementById('update_t_guests');
+    let id_form_intensity = document.getElementById('update_t_intensity');
+    let id_form_location = document.getElementById('update_t_location');
+    let id_form_tags = document.getElementById('update_t_tags');
+    let id_form_note = document.getElementById('update_t_note');
+
 }
 // NEEDS update to draw_month parameters
 id_button_task_update_submit.onclick = async function () {
