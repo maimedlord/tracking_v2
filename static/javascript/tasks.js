@@ -122,6 +122,7 @@ function get_local_task(task_id) {
     }
 }
 
+// NEED TO ADJUST FOR TIMEZONE!
 async function get_tasks() {
     try {
         let url = URL_BASE + '/tasks_get_all';
@@ -209,31 +210,50 @@ function draw_month(month, year) {
         // prep
         let started_day_nums = false;
         let days_in_month = get_days_in_month(month, year);
-        let written_day = 1;
-        //
+        let written_day_num = 1;
+        // every month except for some rare February's have five weeks
         for (let row = 0; row < 5; row++) {
             let temp_row_div = document.createElement('div');
             temp_row_div.className = 'calendar_month_week'
             temp_row_div.id = 'calendar_month_week' + row.toString();
+            // each day of the week
             for (let col = 0; col < 7; col++) {
-                //
+                // determine which day of first week will start day-of-month numbering
                 if (!started_day_nums && col === get_weekday_of_month(month, year)) {
                     started_day_nums = true;
                 }
                 //
                 let temp_day_div = document.createElement('div');
-                temp_day_div.id = 'month' + row.toString() + col.toString();
                 temp_day_div.className = 'calendar_month_day';
+                temp_day_div.dataset.col = col.toString();
+                temp_day_div.dataset.row = row.toString();
+                // add day of the week text
                 temp_day_div.textContent += week_array[col] + ' ';
-                if (started_day_nums) {
-                    if (written_day <= days_in_month) {
-                        temp_day_div.textContent += written_day.toString();
-                        written_day++;
-                    }
+                // add day-of-the-month number
+                if (started_day_nums && written_day_num <= days_in_month) {
+                    temp_day_div.id = 'month' + written_day_num.toString();
+                    temp_day_div.textContent += written_day_num.toString();
+                    written_day_num++;
                 }
                 temp_row_div.append(temp_day_div);
             }
             id_calendar_view.append(temp_row_div);
+        }
+        // draw tasks on the calendar
+        if (!TASKS_OBJ) {
+            return;
+        }
+        // process each task
+        let temp_obj = TASKS_OBJ['data'];
+        for (let i = 0; i < temp_obj.length; i++) {
+            console.log(temp_obj[i]);
+            let day_num = new Date(temp_obj[i]['dateStart']).getDate().toString();
+            let found_div = document.getElementById('month' + day_num);
+            let temp_div = document.createElement('div');
+            temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+            temp_div.style.borderStyle = 'solid';
+            temp_div.textContent = temp_obj[i]['title'];
+            found_div.append(temp_div);
         }
     } catch (error) {
         // Handle errors
