@@ -227,6 +227,7 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
                 # 'intensity': task_obj['intensity'],
                 'location': task_obj['location'],
                 'priority': task_obj['priority'],
+                'repeat': task_obj['repeat'],
                 'tags': task_obj['tags'],
                 'text': task_obj['text'],
                 'title': task_obj['title']

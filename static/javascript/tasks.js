@@ -108,6 +108,17 @@ function edit_task_popup(task_id) {
     }
 }
 
+function edit_task_series_popup(series_id) {
+    // split the series_id into the task id and the series task date:
+    let id_and_date = series_id.split(',');
+    // quick validation before processing:
+    if (id_and_date.length !== 2) {
+        return;
+    }
+    // check if this exists in recordedTasks and pull from there if so
+
+}
+
 // RETURN null if no local task found || task object if found
 function get_local_task(task_id) {
     try {
@@ -212,14 +223,18 @@ function sort_tasks() {
 function draw_month(month, year) {
     try {
         // prep
-        let started_day_nums = false;
         let days_in_month = get_days_in_month(month, year);
+        // First moment of the month
+        const month_first_moment = new Date(year, month, 1, 0, 0, 0, 0);
+        // Last moment of the month: Day 0 of the next month gives the last day of this month
+        const month_last_moment = new Date(year, month + 1, 0, 23, 59, 59, 999);
+        let started_day_nums = false;
         let written_day_num = 1;
         id_calendar_view.innerHTML = '';
         // every month except for some rare February's have five weeks
         for (let row = 0; row < 5; row++) {
             let temp_row_div = document.createElement('div');
-            temp_row_div.className = 'calendar_month_week'
+            temp_row_div.className = 'calendar_month_week';
             temp_row_div.id = 'calendar_month_week' + row.toString();
             // each day of the week
             for (let col = 0; col < 7; col++) {
@@ -251,18 +266,97 @@ function draw_month(month, year) {
         // process each task
         let temp_obj = TASKS_OBJ['data'];
         for (let i = 0; i < temp_obj.length; i++) {
-            // skip null dateStart
+            let start_date = new Date(temp_obj[i]['dateStart']);
+            // first, draw what is recorded in recordedTasks array
+            if (temp_obj[i]['recordedTasks'].length > 0) {
+                console.log(temp_obj[i]['recordedTasks']);
+                console.log('gonna draw me some recordedTasks i am...');
+            }
+            // skip drawing task if no start date or if start date already in recordedTasks
+            // NEED to add check if start date in recordedTasks
             if (!temp_obj[i]['dateStart']) {
                 continue;
             }
-            let day_num = new Date(temp_obj[i]['dateStart']).getDate().toString();
-            let found_div = document.getElementById('month' + day_num);
-            let temp_div = document.createElement('div');
-            temp_div.style.borderColor = '#' + temp_obj[i]['color'];
-            temp_div.style.borderStyle = 'solid';
-            temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
-            temp_div.textContent = temp_obj[i]['title'];
-            found_div.append(temp_div);
+            // for each one check if recordedTasks already has it and pass if it does...
+            // ...
+            let repeat_values = temp_obj[i]['repeat'].split(',');
+            console.log('repeat values');
+            console.log(repeat_values);
+            // handle tasks with no repeat set up
+            if (repeat_values.length === 1) {
+                let day_element = document.getElementById('month' + start_date.getDate().toString());
+                let temp_div = document.createElement('div');
+                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'];
+                temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
+                temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+                temp_div.style.borderStyle = 'solid';
+                temp_div.innerText = temp_obj[i]['title'];
+                day_element.append(temp_div);
+                continue;
+            }
+            // handle daily repeat
+            if (repeat_values[0] === 'daily') {
+                console.log(repeat_values[0]);
+                // handle never
+                if (repeat_values[2] === 'never') {} // NEEDS
+                if (is_all_digits(repeat_values[2])) {
+                    let occurences = parseInt(repeat_values[2]);
+                    let skip_amt = parseInt(repeat_values[1]);
+                    // let start_date = new Date(temp_obj[i]['dateStart']);
+                    let last_date = new Date(start_date);
+                    last_date.setDate(last_date.getDate() + (skip_amt * occurences));
+                    // skip if task end date is before this month
+                    if (last_date < month_first_moment) {
+                        console.log('the last date of the series was before this months first moment');
+                        continue;
+                    }
+                    console.log('occurences: ', occurences.toString());
+                    // process n number of tasks in the series and print if in this month
+                    for (let ii = 0; ii < occurences; ii++) {
+                        console.log(temp_obj[i]['title']);
+                        let temp_date = new Date(start_date);
+                        temp_date.setDate(temp_date.getDate() + (skip_amt * ii));
+                        console.log('new date in series below');
+                        console.log(temp_date);
+                        // break out of loop if task in series is past this month
+                        if (temp_date > month_last_moment) {
+                            console.log('task in series after this month');
+                            break;
+                        }
+                        // skip if task in series is before this month
+                        if (temp_date < month_first_moment) {
+                            console.log('task in series before this month');
+                            continue;
+                        }
+                        // check against recordedTasks to see if already there...
+
+                        //
+                        let month_day = temp_date.getDate();
+                        let day_element = document.getElementById('month' + month_day.toString());
+                        console.log(day_element);
+                        let temp_div = document.createElement('div');
+                        temp_div.id = temp_obj[i]['_id'] + ',' + temp_date.toISOString();
+                        temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
+                        temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+                        temp_div.style.borderStyle = 'solid';
+                        temp_div.innerText = temp_obj[i]['title'];
+                        day_element.append(temp_div);
+                    }
+                }
+            }
+
+            // ... // ... //
+            console.log(temp_obj[i]['_id']);
+            console.log(temp_obj[i]['dateStart']);
+            // let day_num = new Date(temp_obj[i]['dateStart']).getDate().toString();
+            // let found_div = document.getElementById('month' + day_num);
+            // let temp_div = document.createElement('div');
+            // temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'];
+            // temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+            // temp_div.style.borderStyle = 'solid';
+            // temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
+            // temp_div.textContent = temp_obj[i]['title'];
+            // found_div.append(temp_div);
         }
     } catch (error) {
         // Handle errors

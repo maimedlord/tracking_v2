@@ -1,5 +1,9 @@
 const API_URL_BASE = 'http://127.0.0.1:5000/api';
 
+function is_all_digits(str) {
+    return /^\d+$/.test(str);
+}
+
 function view_apply() {
     if (!VIEWS_OBJ) {
         console.log('VIEWS_OBJ is false');
