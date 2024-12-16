@@ -211,6 +211,7 @@ function draw_month(month, year) {
         let started_day_nums = false;
         let days_in_month = get_days_in_month(month, year);
         let written_day_num = 1;
+        id_calendar_view.innerHTML = '';
         // every month except for some rare February's have five weeks
         for (let row = 0; row < 5; row++) {
             let temp_row_div = document.createElement('div');
@@ -247,11 +248,16 @@ function draw_month(month, year) {
         let temp_obj = TASKS_OBJ['data'];
         for (let i = 0; i < temp_obj.length; i++) {
             console.log(temp_obj[i]);
+            // skip null dateStart
+            if (!temp_obj[i]['dateStart']) {
+                continue;
+            }
             let day_num = new Date(temp_obj[i]['dateStart']).getDate().toString();
             let found_div = document.getElementById('month' + day_num);
             let temp_div = document.createElement('div');
             temp_div.style.borderColor = '#' + temp_obj[i]['color'];
             temp_div.style.borderStyle = 'solid';
+            temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
             temp_div.textContent = temp_obj[i]['title'];
             found_div.append(temp_div);
         }
@@ -294,7 +300,7 @@ id_button_delete_no.onclick=function () {
         console.error("There was an error with the fetch request: id_button_delete_no.onclick: ", error);
     }
 }
-
+// NEEDS update to draw_month parameters
 id_button_task_create_submit.onclick=async function () {
     try {
         let id_form_color = document.getElementById('create_task_color');
@@ -379,14 +385,17 @@ id_button_task_create_submit.onclick=async function () {
         id_form_title.value = '';
         id_form_text.value = '';
         get_tasks()
-            .then(() => {})
+            .then(() => {
+                // CHANGE
+                draw_month(11, 2024);
+            })
             .catch(error => console.error("Error in get_tasks:", error));
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: id_button_task_create_submit.onclick: ", error);
     }
 }
-
+// NEEDS update to draw_month parameters
 id_button_task_update_submit.onclick = async function () {
     try {
         let id_form_id = document.getElementById('update_task_id');
@@ -449,7 +458,10 @@ id_button_task_update_submit.onclick = async function () {
         }
         close_popups();
         get_tasks()
-            .then(() => {})
+            .then(() => {
+                // CHANGE
+                draw_month(11, 2024);
+            })
             .catch(error => console.error("Error in get_tasks:", error));
     } catch (error) {
         // Handle errors
