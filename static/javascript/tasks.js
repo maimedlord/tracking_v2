@@ -5,10 +5,14 @@ let id_button_delete_yes = document.getElementById('button_delete_yes');
 let id_button_task_create_submit = document.getElementById('button_task_create_submit');
 let id_button_task_update_submit = document.getElementById('button_task_update_submit');
 let id_calendar_view = document.getElementById('calendar_view');
+let id_task_choose_one = document.getElementById('task_choose_one');
+let id_task_choose_series = document.getElementById('task_choose_series');
 let id_task_create_container = document.getElementById('task_create_container');
 let id_task_create_error_message = document.getElementById('task_create_error_message');
 let id_task_confirm_delete_container = document.getElementById('task_confirm_delete_container');
 let id_task_edit_container = document.getElementById('task_edit_container');
+let id_task_edit_one = document.getElementById('task_edit_one');
+let id_task_edit_series = document.getElementById('task_edit_series');
 let id_task_update_error_message = document.getElementById('task_update_error_message');
 let id_tasks_container = document.getElementById('tasks_container');
 let id_select_sort_by = document.getElementById('select_sort_by');
@@ -247,7 +251,6 @@ function draw_month(month, year) {
         // process each task
         let temp_obj = TASKS_OBJ['data'];
         for (let i = 0; i < temp_obj.length; i++) {
-            console.log(temp_obj[i]);
             // skip null dateStart
             if (!temp_obj[i]['dateStart']) {
                 continue;
@@ -493,6 +496,16 @@ id_select_sort_by.onclick = function () {
         console.error("There was an error in id_select_sort_by.onclick:", error);
     }
 };
+
+id_task_choose_one.onclick = function () {
+    id_task_edit_series.style.display = 'none';
+    id_task_edit_one.style.display = 'flex';
+}
+
+id_task_choose_series.onclick = function () {
+    id_task_edit_one.style.display = 'none';
+    id_task_edit_series.style.display = 'flex';
+}
 
 // ???
 window.onload=function () {
