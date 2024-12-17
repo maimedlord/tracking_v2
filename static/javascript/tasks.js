@@ -6,6 +6,7 @@ let id_button_t_update_submit = document.getElementById('button_t_update_submit'
 let id_button_task_create_submit = document.getElementById('button_task_create_submit');
 let id_button_task_update_submit = document.getElementById('button_task_update_submit');
 let id_calendar_view = document.getElementById('calendar_view');
+let id_t_update_error_message = document.getElementById('t_update_error_message');
 let id_task_choose_one = document.getElementById('task_choose_one');
 let id_task_choose_series = document.getElementById('task_choose_series');
 let id_task_create_container = document.getElementById('task_create_container');
@@ -186,17 +187,27 @@ async function get_tasks() {
                          onclick="edit_task_popup('${TASKS_OBJ['data'][i]['_id']}')">EDIT</div>
                 </div>
             `;
+            // prep dates for timezone change
+            let temp_created_date = new Date(TASKS_OBJ['data'][i]['dateCreated']);
+            let temp_end_date = null;
+            let temp_start_date = null;
+            if (TASKS_OBJ['data'][i]['dateEnd'] !== "") {
+                temp_end_date = new Date(TASKS_OBJ['data'][i]['dateEnd']);
+            }
+            if (TASKS_OBJ['data'][i]['dateStart'] !== "") {
+                temp_start_date = new Date(TASKS_OBJ['data'][i]['dateStart']);
+            }
             task_container.innerHTML += `
                 ${TASKS_OBJ['data'][i]['_id']}
                 <div><b>Title:</b> ${TASKS_OBJ['data'][i]['title']}</div>
                 <div><b>Description:</b> ${TASKS_OBJ['data'][i]['description']}</div>
-                <div><b>Date Created:</b> ${TASKS_OBJ['data'][i]['dateCreated']}</div>
+                <div><b>Date Created:</b> ${temp_created_date}</div>
                 <div><b>Location:</b> ${TASKS_OBJ['data'][i]['location']}</div>
                 <div><b>Tags:</b> ${TASKS_OBJ['data'][i]['tags']}</div>
                 <div><b>Text:</b> ${TASKS_OBJ['data'][i]['text']}</div>
                 <div><b>Priority:</b> ${TASKS_OBJ['data'][i]['priority']}</div>
-                <div><b>Date Start:</b> ${TASKS_OBJ['data'][i]['dateStart']}</div>
-                <div><b>Date End:</b> ${TASKS_OBJ['data'][i]['dateEnd']}</div>
+                <div><b>Date Start:</b> ${temp_start_date.toString()}</div>
+                <div><b>Date End:</b> ${temp_end_date.toString()}</div>
                 <div><b>reminder:</b> ${TASKS_OBJ['data'][i]['reminder']}</div>
                 <div><b>repeat:</b> ${TASKS_OBJ['data'][i]['repeat']}</div>
                 <div><b>recordedTasks log drop down goes here</b></div>
@@ -327,7 +338,7 @@ function draw_month(month, year) {
                     console.log('occurrences: ', occurrences.toString());
                     // process n number of tasks in the series and print if in this month
                     for (let ii = 0; ii < occurrences; ii++) {
-                        console.log(temp_obj[i]['title']);
+                        // console.log(temp_obj[i]['title']);
                         let temp_start_date = new Date(start_date);
                         let temp_end_date = new Date(end_date);
                         temp_start_date.setDate(temp_start_date.getDate() + (skip_amt * ii));
@@ -349,7 +360,7 @@ function draw_month(month, year) {
                         //
                         let month_day = temp_start_date.getDate();
                         let day_element = document.getElementById('month' + month_day.toString());
-                        console.log(day_element);
+                        // console.log(day_element);
                         let temp_div = document.createElement('div');
                         temp_div.id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5) + ',' +
                             temp_end_date.toISOString().slice(0, -5);
@@ -361,19 +372,6 @@ function draw_month(month, year) {
                     }
                 }
             }
-
-            // ... // ... //
-            console.log(temp_obj[i]['_id']);
-            console.log(temp_obj[i]['dateStart']);
-            // let day_num = new Date(temp_obj[i]['dateStart']).getDate().toString();
-            // let found_div = document.getElementById('month' + day_num);
-            // let temp_div = document.createElement('div');
-            // temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'];
-            // temp_div.style.borderColor = '#' + temp_obj[i]['color'];
-            // temp_div.style.borderStyle = 'solid';
-            // temp_div.onclick = () => edit_task_popup(temp_obj[i]['_id']);
-            // temp_div.textContent = temp_obj[i]['title'];
-            // found_div.append(temp_div);
         }
     } catch (error) {
         // Handle errors
@@ -519,7 +517,46 @@ id_button_t_update_submit.onclick=async  function () {
     let id_form_location = document.getElementById('update_t_location');
     let id_form_tags = document.getElementById('update_t_tags');
     let id_form_note = document.getElementById('update_t_note');
-
+    // INPUT VALIDATION
+    // fix dates before populating object
+    let date_end = null;
+    let date_start = null;
+    if (id_form_dateend.value !== "") {
+        date_end = new Date(id_form_dateend.value).toISOString();
+    }
+    if (id_form_datestart.value !== "") {
+        date_start = new Date(id_form_datestart.value).toISOString();
+    }
+    let recorded_task_obj = {
+        'id': id_form_id.value,
+        'dateEnd': date_end,
+        'dateStart': date_start,
+        'guests': id_form_guests.value,
+        'intensity': id_form_intensity.value,
+        'location': id_form_location.value,
+        'note': id_form_note.value,
+        'tags': id_form_tags.value,
+    }
+    let url = URL_BASE + '/t_update/' + JSON.stringify(recorded_task_obj);
+    // make asynchronous POST request to the API
+    let response = await fetch(url, { method: 'GET' });
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    // Parse the JSON data from the response
+    let data = await response.json();
+    if (data.statusCode != 200) {
+        id_t_update_error_message.textContent = 'Error creating task: non-200 response received...';
+        id_t_update_error_message.style.display = 'flex';
+        return;
+    }
+    close_popups();
+    get_tasks()
+        .then(() => {
+            // CHANGE
+            draw_month(11, 2024);
+        })
+        .catch(error => console.error("Error in get_tasks:", error));
 }
 // NEEDS update to draw_month parameters
 id_button_task_update_submit.onclick = async function () {
@@ -540,17 +577,17 @@ id_button_task_update_submit.onclick = async function () {
         // INPUT VALIDATION
         // task title cannot be blank
         if (id_form_title.value === "") {
-            id_task_update_error_message.style.display = 'flex';
+            id_t_update_error_message.style.display = 'flex';
             return;
         }
         // fix dates before populating object
         let date_end = null;
         let date_start = null;
         if (id_form_dateend.value !== "") {
-            date_end = new Date(new Date(id_form_dateend.value) + OFFSET_VALUE).toISOString();
+            date_end = new Date(id_form_dateend.value).toISOString();
         }
         if (id_form_datestart.value !== "") {
-            date_start = new Date(new Date(id_form_datestart.value) + OFFSET_VALUE).toISOString();
+             date_start = new Date(id_form_datestart.value).toISOString();
         }
         let task_obj = {
             'id': id_form_id.value,

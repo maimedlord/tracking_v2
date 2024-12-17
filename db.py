@@ -119,17 +119,10 @@ def notes_get_all(user_id_str: str):
 
 
 # RETURN
-def t_update(user_id_str: str, t_obj: dict):
-    pass
-
-
-# RETURN None if error or no docs || list of all docs if exist
-def tasks_get_all(user_id_str: str):
-    collection = db_tasks[user_id_str]
-    response = collection.find()
-    if response:
-        return list(response)
-    return None
+def t_update(user_id_str: str, t_obj: object):
+    print(t_obj)
+    print()
+    return True
 
 
 # RETURN None if creating task fails || insert_one object if successful
@@ -206,7 +199,10 @@ def task_delete(user_id_str: str, task_id_str: str):
 def task_update(user_id_str: str, task_obj: dict) -> bool:
     try:
         if task_obj['dateEnd']:
+            print(task_obj['dateEnd'])
             task_obj['dateEnd'] = datetime.fromisoformat(task_obj['dateEnd'])
+            print('dateEnd after follows')
+            print(task_obj['dateEnd'])
         if task_obj['dateStart']:
             task_obj['dateStart'] = datetime.fromisoformat(task_obj['dateStart'])
         if task_obj['guests']:
@@ -265,6 +261,15 @@ def task_update(user_id_str: str, task_obj: dict) -> bool:
         print(str(e))
         utility.log_write(str(e))
         return False
+
+
+# RETURN None if error or no docs || list of all docs if exist
+def tasks_get_all(user_id_str: str):
+    collection = db_tasks[user_id_str]
+    response = collection.find()
+    if response:
+        return list(response)
+    return None
 
 
 # RETURN None
