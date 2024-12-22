@@ -119,9 +119,28 @@ def notes_get_all(user_id_str: str):
 
 
 # RETURN
-def t_update(user_id_str: str, t_obj: object):
+def t_update(user_id_str: str, t_obj: dict):
     print(t_obj)
-    print()
+    collection = db_tasks[user_id_str]
+    id_parts_array = t_obj['id'].split(',')  # main_task_id,original_date_start,original_date_end
+    recorded_tasks = "recordedTasks"
+    # Update the existing task or add it if it doesn't exist
+    result = collection.update_one({
+            "_id": ObjectId(id_parts_array[0]),  # Match the document
+            f"{recorded_tasks}.id": t_obj['id'],  # Match the element in the array by 'id'
+        },
+        {
+            "$set": {f"{recorded_tasks}.$": t_obj}  # Update the matched task
+        }
+    )
+
+    if result.matched_count == 0:
+        print('returned zero')
+        # If the task does not exist, add it to the array
+        collection.update_one(
+            {'_id': ObjectId(id_parts_array[0])},
+            {"$addToSet": {recorded_tasks: t_obj}}  # Add the new task to the array
+        )
     return True
 
 

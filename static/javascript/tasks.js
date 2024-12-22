@@ -323,7 +323,7 @@ function draw_month(month, year) {
                 if (repeat_values[2] === 'never') { // NEEDS
 
                 }
-                // handle n occurrences
+                // handle 'n' occurrences
                 if (is_all_digits(repeat_values[2])) {
                     let occurrences = parseInt(repeat_values[2]);
                     let skip_amt = parseInt(repeat_values[1]);
@@ -355,7 +355,7 @@ function draw_month(month, year) {
                             // console.log('task in series before this month');
                             continue;
                         }
-                        // check against recordedTasks to see if already there...
+                        // check against recordedTasks to see if already there... NEED
 
                         //
                         let month_day = temp_start_date.getDate();
@@ -515,6 +515,7 @@ id_button_t_update_submit.onclick=async  function () {
     let id_form_guests = document.getElementById('update_t_guests');
     let id_form_intensity = document.getElementById('update_t_intensity');
     let id_form_location = document.getElementById('update_t_location');
+    let id_form_status = document.getElementById('update_t_status');
     let id_form_tags = document.getElementById('update_t_tags');
     let id_form_note = document.getElementById('update_t_note');
     // INPUT VALIDATION
@@ -535,6 +536,7 @@ id_button_t_update_submit.onclick=async  function () {
         'intensity': id_form_intensity.value,
         'location': id_form_location.value,
         'note': id_form_note.value,
+        'status': id_form_status.value,
         'tags': id_form_tags.value,
     }
     let url = URL_BASE + '/t_update/' + JSON.stringify(recorded_task_obj);
