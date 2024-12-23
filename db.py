@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 from bson.objectid import ObjectId
 from datetime import datetime, timezone
@@ -119,27 +120,32 @@ def notes_get_all(user_id_str: str):
 
 
 # RETURN
+# ChatGPT
 def t_update(user_id_str: str, t_obj: dict):
-    print(t_obj)
     collection = db_tasks[user_id_str]
     id_parts_array = t_obj['id'].split(',')  # main_task_id,original_date_start,original_date_end
     recorded_tasks = "recordedTasks"
-    # Update the existing task or add it if it doesn't exist
+    # grab original id for querying db
+    original_id: str = t_obj['id']
+    # update recordedTask id before inserting it
+    t_obj['id'] = id_parts_array[0] + ',' + t_obj['dateStart'] + ',' + t_obj['dateEnd']
+    # remove dates
+    t_obj.pop('dateStart')
+    t_obj.pop('dateEnd')
+    # first, try to update recordedTask if it exists
     result = collection.update_one({
             "_id": ObjectId(id_parts_array[0]),  # Match the document
-            f"{recorded_tasks}.id": t_obj['id'],  # Match the element in the array by 'id'
+            f"{recorded_tasks}.id": original_id,  # Match the element in the array by 'id'
         },
         {
             "$set": {f"{recorded_tasks}.$": t_obj}  # Update the matched task
         }
     )
-
+    # last, append new recordedTas
     if result.matched_count == 0:
-        print('returned zero')
-        # If the task does not exist, add it to the array
         collection.update_one(
             {'_id': ObjectId(id_parts_array[0])},
-            {"$addToSet": {recorded_tasks: t_obj}}  # Add the new task to the array
+            {"$addToSet": {recorded_tasks: t_obj}}
         )
     return True
 
