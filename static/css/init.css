@@ -15,7 +15,6 @@ body {
     flex-direction: row;
     gap: 20px;
     justify-content: center;
-    padding: 5px;
     width: 100%;
 }
 #test_main {

@@ -1,4 +1,5 @@
 .button {
+    background-color: gainsboro;
     border: black 1px solid;
     box-shadow: black 2px 2px;
     text-align: center;
@@ -41,6 +42,13 @@
     flex-direction: column;
     width: 100%;
 }
+#calendar_menu {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 20px;
+    margin: 5px 0 5px 0;
+    width: 100%;
+}
 .calendar_month_day {
     border: black solid 1px;
     font-size: x-small;
@@ -51,15 +59,23 @@
     display: flex;
     flex-direction: row;
 }
-.close_confirm_container {
+#calendar_title {
     align-items: center;
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
     width: 100%;
 }
 #calendar_view {
     margin: auto;
     width: 95%;
+}
+.close_confirm_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    width: 100%;
 }
 #menu_confirm_delete_container {
     align-items: center;
@@ -96,7 +112,7 @@
     display: flex;
     flex-direction: column;
     margin-top: 10px;
-    padding: 5px;
+    /*padding: 5px;*/
 }
 #task_create_error_message {
     align-items: center;
@@ -122,7 +138,7 @@
     box-shadow: black 2px 2px;
     padding: 5px;
     z-index: 1000;
-    width: 60%;
+    width: 500px;
 }
 #task_edit_one {
     display: flex;
