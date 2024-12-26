@@ -3,6 +3,7 @@ let id_button_create = document.getElementById('button_create');
 let id_button_delete_no = document.getElementById('button_delete_no');
 let id_button_delete_yes = document.getElementById('button_delete_yes');
 let id_button_month_next = document.getElementById('button_month_next');
+let id_button_month_now = document.getElementById('button_month_now');
 let id_button_month_prev = document.getElementById('button_month_prev');
 let id_button_t_update_submit = document.getElementById('button_t_update_submit');
 let id_button_task_create_submit = document.getElementById('button_task_create_submit');
@@ -23,8 +24,8 @@ let id_tasks_container = document.getElementById('tasks_container');
 let id_select_sort_by = document.getElementById('select_sort_by');
 
 // calendar variables
-let cal_now_month = 11;
-let cal_now_year = 2024;
+let cal_now_month = new Date().getMonth();
+let cal_now_year = new Date().getFullYear();
 const week_array = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // other variables
@@ -269,7 +270,7 @@ function sort_tasks() {
 
 /// calendar functions
 // RETURNS ???
-function cal_month_next(month, year) {
+function set_cal_month_next(month, year) {
     if (month === 11) {
         cal_now_month = 1;
         cal_now_year = ++year;
@@ -290,6 +291,7 @@ function cal_month_prev(month, year) {
 
 function draw_month(month, year) {
     try {
+        console.log(month, year);
         // prep
         let days_in_month = get_days_in_month(month, year);
         // First moment of the month
@@ -299,7 +301,7 @@ function draw_month(month, year) {
         let started_day_nums = false;
         let written_day_num = 1;
         // write month name
-        id_calendar_title.innerText = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
+        id_calendar_title.innerText = new Date(year, month).toLocaleString('default', { month: 'long' });
         id_calendar_view.innerHTML = '';
         // every month except for some rare February's have five weeks
         for (let row = 0; row < 5; row++) {
@@ -354,7 +356,11 @@ function draw_month(month, year) {
             // handle tasks with no repeat set up and no recordedTasks
             if (repeat_values.length === 1 && temp_obj[i]['recordedTasks'].length === 0) {
                 // only draw tasks that exist within this month
+                console.log('month first moment', month_first_moment);
                 if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
+                    console.log('here');
+                    console.log(start_date_utc);
+                    console.log(month_first_moment);
                     continue;
                 }
                 let day_element = document.getElementById('month' + start_date_utc.getDate().toString());
@@ -517,7 +523,13 @@ id_button_delete_no.onclick=function () {
 }
 
 id_button_month_next.onclick=function () {
-    cal_month_next(cal_now_month, cal_now_year);
+    set_cal_month_next(cal_now_month, cal_now_year);
+    draw_month(cal_now_month, cal_now_year);
+}
+
+id_button_month_now.onclick=function () {
+    const now_date = new Date();
+    set_cal_month_next(now_date.getMonth(), now_date.getFullYear());
     draw_month(cal_now_month, cal_now_year);
 }
 
@@ -799,7 +811,7 @@ window.onload=function () {
             if (id_select_sort_by.value !== "") {
                 sort_tasks();
             }
-            draw_month(11, 2024);
+            draw_month(cal_now_month, cal_now_year);
         })
         .catch(error => console.error("Error in view_configs_get:", error));
 }
