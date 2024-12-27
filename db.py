@@ -119,35 +119,69 @@ def notes_get_all(user_id_str: str):
     return None
 
 
-# RETURN
+# RETURN None if deleting recordedTask fails || update_one object if successful
+def t_delete(user_id_str: str, t_id_str: str):
+    try:
+        print(t_id_str)
+        collection = db_tasks[user_id_str]
+        id_parts_array = t_id_str.split(',')  # main_task_id,original_date_start,original_date_end
+        print(id_parts_array)
+        recorded_tasks = "recordedTasks"
+        # first, try to update recordedTask if it exists
+        result = collection.update_one({'_id': ObjectId(id_parts_array[0])},{
+            "$pull": {recorded_tasks: {"id": t_id_str}}
+        })
+        print(result)
+        if result.acknowledged:
+            return result
+        return None
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+
+# RETURN None if updating recordedTask fails || update_one object if successful
 # ChatGPT
 def t_update(user_id_str: str, t_obj: dict):
-    collection = db_tasks[user_id_str]
-    id_parts_array = t_obj['id'].split(',')  # main_task_id,original_date_start,original_date_end
-    recorded_tasks = "recordedTasks"
-    # grab original id for querying db
-    original_id: str = t_obj['id']
-    # update recordedTask id before inserting it
-    t_obj['id'] = id_parts_array[0] + ',' + t_obj['dateStart'] + ',' + t_obj['dateEnd']
-    # remove dates
-    t_obj.pop('dateStart')
-    t_obj.pop('dateEnd')
-    # first, try to update recordedTask if it exists
-    result = collection.update_one({
+    try:
+        collection = db_tasks[user_id_str]
+        id_parts_array = t_obj['id'].split(',')  # main_task_id,original_date_start,original_date_end
+        recorded_tasks = "recordedTasks"
+        # grab original id for querying db
+        original_id: str = t_obj['id']
+        # update recordedTask id before inserting it
+        # swap out null with empty string
+        if t_obj['dateEnd'] == None:
+            t_obj['dateEnd'] = ''
+        if t_obj['dateStart'] == None:
+            t_obj['dateStart'] = ''
+        t_obj['id'] = id_parts_array[0] + ',' + t_obj['dateStart'] + ',' + t_obj['dateEnd']
+        # remove dates
+        t_obj.pop('dateStart')
+        t_obj.pop('dateEnd')
+        # first, try to update recordedTask if it exists
+        result = collection.update_one({
             "_id": ObjectId(id_parts_array[0]),  # Match the document
             f"{recorded_tasks}.id": original_id,  # Match the element in the array by 'id'
         },
-        {
-            "$set": {f"{recorded_tasks}.$": t_obj}  # Update the matched task
-        }
-    )
-    # last, append new recordedTas
-    if result.matched_count == 0:
-        collection.update_one(
-            {'_id': ObjectId(id_parts_array[0])},
-            {"$addToSet": {recorded_tasks: t_obj}}
+            {
+                "$set": {f"{recorded_tasks}.$": t_obj}  # Update the matched task
+            }
         )
-    return True
+        # last, append new recordedTask if it is new
+        if result.matched_count == 0:
+            result = collection.update_one(
+                {'_id': ObjectId(id_parts_array[0])},
+                {"$addToSet": {recorded_tasks: t_obj}}
+            )
+        if result.matched_count > 0:
+            return result
+        return None
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
 
 
 # RETURN None if creating task fails || insert_one object if successful
