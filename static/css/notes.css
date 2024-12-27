@@ -41,6 +41,12 @@
     padding: 4px;
     width: 15px ;
 }
+#form_create_note {
+    width: 100%;
+}
+.input_field_text {
+    width: 95%;
+}
 #menu_confirm_delete_container {
     align-items: center;
     display: flex;
