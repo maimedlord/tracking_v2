@@ -254,6 +254,24 @@ def api_notes_get_all():
         return json.dumps(http_500)
 
 
+@app.route('/api/t_delete/<t_id>')
+@login_required
+def api_t_delete(t_id):
+    try:
+        response = db.t_delete(current_user.id_str, t_id)
+        if response:
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
 @app.route('/api/t_update/<t_obj>')
 @login_required
 def api_t_update(t_obj):
