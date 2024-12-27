@@ -16,9 +16,9 @@
         </div>
         <form id="form_create_task" name="form_create_task">
             <label for="create_task_title">title:</label><br>
-            <input id="create_task_title" name="create_task_title" size="50" type="text"><br>
+            <input id="create_task_title" name="create_task_title"  type="text"><br>
             <label for="create_task_description">description:</label><br>
-            <input id="create_task_description" name="create_task_description" size="50" type="text"><br>
+            <input id="create_task_description" name="create_task_description"  type="text"><br>
             task children:<br>
             task parents:<br>
             <label for="create_task_datestart">start time:</label><br>
@@ -45,13 +45,13 @@
             <label for="create_task_color">color:</label><br>
             <input id="create_task_color" name="create_task_color" type="color" value="#FFFFFF"><br>
             <label for="create_task_location">location:</label><br>
-            <input id="create_task_location" name="create_task_location" size="50" type="text"><br>
+            <input id="create_task_location" name="create_task_location"  type="text"><br>
             <label for="create_task_priority">priority:</label><br>
-            <input id="create_task_priority" max="100" min="0" name="create_task_priority" size="50" type="number"><br>
+            <input id="create_task_priority" max="100" min="0" name="create_task_priority"  type="number"><br>
             <label for="create_task_tags">tags <i>comma separated</i>:</label><br>
-            <input id="create_task_tags" name="create_task_tags" size="50" type="text"><br>
+            <input id="create_task_tags" name="create_task_tags"  type="text"><br>
             <label for="create_task_text">text:</label><br>
-            <input id="create_task_text" name="create_task_text" size="50" type="text">
+            <input id="create_task_text" name="create_task_text"  type="text">
             <br>
             <button type="button" id="button_task_create_submit">create task</button>
         </form>
@@ -88,13 +88,13 @@
                 <label for="update_t_dateend">end time:</label><br>
                 <input id="update_t_dateend" name="update_t_dateend" type="datetime-local"><br>
                 <label for="update_t_location">location:</label><br>
-                <input id="update_t_location" name="update_t_location" size="50" type="text"><br>
+                <input id="update_t_location" name="update_t_location"  type="text"><br>
                 <label for="update_t_guests">guests:</label><br>
-                <input id="update_t_guests" name="update_t_guests" size="50" type="text"><br>
+                <input class="input_field_text" id="update_t_guests" name="update_t_guests"  type="text"><br>
                 <label for="update_t_intensity">intensity:</label><br>
-                <input id="update_t_intensity" max="100" min="0" name="update_t_intensity" size="50" type="number"><br>
+                <input id="update_t_intensity" max="100" min="0" name="update_t_intensity"  type="number"><br>
 {#                <label for="update_t_priority">priority:</label><br>#}
-{#                <input id="update_t_priority" max="100" min="0" name="update_t_priority" size="50" type="number"><br>#}
+{#                <input id="update_t_priority" max="100" min="0" name="update_t_priority"  type="number"><br>#}
                 <label for="update_t_status">status:</label><br>
                 <select id="update_t_status" name="update_t_status" >
                     <option value="closed">closed</option>
@@ -104,14 +104,17 @@
                     <option value="skipped">skipped</option>
                 </select><br>
                 <label for="update_t_tags">tags <i>comma separated</i>:</label><br>
-                <input id="update_t_tags" name="update_t_tags" size="50" type="text"><br>
+                <input class="input_field_text" id="update_t_tags" name="update_t_tags"  type="text"><br>
 {#                <label for="update_t_text">text:</label><br>#}
-{#                <input id="update_t_text" name="update_t_text" size="50" type="text">#}
+{#                <input id="update_t_text" name="update_t_text"  type="text">#}
                 <b>!!! a note object tied to this subtask would go here...</b>
                 <br>
                 <label for="update_t_note">note:</label><br>
-                <input id="update_t_note" name="update_t_note" size="50" type="text"><br>
-                <button type="button" id="button_t_update_submit">update t</button>
+                <input class="input_field_text" id="update_t_note" name="update_t_note"  type="text">
+                <div id="edit_t_buttons">
+                    <button type="button" id="button_t_delete_submit">delete recordedTask</button>
+                    <button type="button" id="button_t_update_submit">update recordedTask</button>
+                </div>
             </form>
         </div>
         <div id="task_edit_series">
@@ -121,9 +124,9 @@
             <form id="form_update_task" name="form_update_task">
                 <input id="update_task_id" name="update_task_id" type="hidden">
                 <label for="update_task_title">title:</label><br>
-                <input id="update_task_title" name="update_task_title" size="50" type="text"><br>
+                <input class="input_field_text" id="update_task_title" name="update_task_title"  type="text"><br>
                 <label for="update_task_description">description:</label><br>
-                <input id="update_task_description" name="update_task_description" size="50" type="text"><br>
+                <input class="input_field_text" id="update_task_description" name="update_task_description"  type="text"><br>
                 <label for="update_task_color">color:</label><br>
                 <input id="update_task_color" name="update_task_color" type="color"><br>
                 task children:<br>
@@ -142,17 +145,17 @@
                 <i>monthly,n,two-char-days-of-month-concatenated,bool,date|n|never</i><br>
                 <input id="update_task_repeat" name="update_task_repeat" type="text"><br>
                 <label for="update_task_location">location:</label><br>
-                <input id="update_task_location" name="update_task_location" size="50" type="text"><br>
+                <input id="update_task_location" name="update_task_location"  type="text"><br>
                 <label for="update_task_guests">guests:</label><br>
-                <input id="update_task_guests" name="update_task_guests" size="50" type="text"><br>
+                <input class="input_field_text" id="update_task_guests" name="update_task_guests"  type="text"><br>
     {#            <label for="update_task_intensity">intensity:</label><br>#}
-    {#            <input id="update_task_intensity" max="100" min="0" name="update_task_intensity" size="50" type="number"><br>#}
+    {#            <input id="update_task_intensity" max="100" min="0" name="update_task_intensity"  type="number"><br>#}
                 <label for="update_task_priority">priority:</label><br>
-                <input id="update_task_priority" max="100" min="0" name="update_task_priority" size="50" type="number"><br>
+                <input id="update_task_priority" max="100" min="0" name="update_task_priority"  type="number"><br>
                 <label for="update_task_tags">tags <i>comma separated</i>:</label><br>
-                <input id="update_task_tags" name="update_task_tags" size="50" type="text"><br>
+                <input class="input_field_text" id="update_task_tags" name="update_task_tags"  type="text"><br>
                 <label for="update_task_text">text:</label><br>
-                <input id="update_task_text" name="update_task_text" size="50" type="text">
+                <input class="input_field_text" id="update_task_text" name="update_task_text"  type="text">
                 <br>
                 <button type="button" id="button_task_update_submit">update task</button>
             </form>
@@ -190,7 +193,7 @@
             <div class="button" id="button_month_now">current month</div>
         </div>
         <div id="calendar_title"></div>
-        <div id="calendar_view"></div>
+        <div id="calendar_view" data-view_config=""></div>
     </div>
     <div id="tasks_container">
         no data loaded...
