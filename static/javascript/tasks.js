@@ -5,6 +5,7 @@ let id_button_delete_yes = document.getElementById('button_delete_yes');
 let id_button_month_next = document.getElementById('button_month_next');
 let id_button_month_now = document.getElementById('button_month_now');
 let id_button_month_prev = document.getElementById('button_month_prev');
+let id_button_t_delete_submit = document.getElementById('button_t_delete_submit');
 let id_button_t_update_submit = document.getElementById('button_t_update_submit');
 let id_button_task_create_submit = document.getElementById('button_task_create_submit');
 let id_button_task_update_submit = document.getElementById('button_task_update_submit');
@@ -115,18 +116,20 @@ function edit_task_popup(task_id) {
         document.getElementById('update_task_tags').value = local_task['tags'];
         document.getElementById('update_task_text').value = local_task['text'];
         id_task_edit_container.style.display = 'flex';
+        // set recordedTask form id in case user tries to create recordedTask, hide delete button
+        document.getElementById('update_t_id').value = task_id;
+        id_button_t_delete_submit.style.display = 'none';
         // skip if no date, else draw 'this' task
         if (id_and_dates.length !== 3) {
             return;
         }
         // first, check if exists in recordedTasks and populate with the data if so
         // NEED
-        document.getElementById('update_t_id').value = task_id;
         // handle UTC to local time conversion
         const local_start_date = new Date(new Date(id_and_dates[1] + 'Z') - OFFSET_VALUE);
         document.getElementById('update_t_datestart').value = local_start_date.toISOString().slice(0,-5);
         // handle potential dateend nulls and then UTC to local time conversion
-        if (id_and_dates[2] !== 'null') {
+        if (id_and_dates[2] !== '') {
             const local_end_date = new Date(new Date(id_and_dates[2] + 'Z') - OFFSET_VALUE);
             document.getElementById('update_t_dateend').value = local_end_date.toISOString().slice(0,-5);
         }
@@ -151,6 +154,8 @@ function edit_task_popup(task_id) {
         document.getElementById('update_t_note').value = local_task['recordedTasks'][found_rTask]['note'];
         document.getElementById('update_t_status').value = local_task['recordedTasks'][found_rTask]['status'];
         document.getElementById('update_t_tags').value = local_task['recordedTasks'][found_rTask]['tags'];
+        // display delete button
+        id_button_t_delete_submit.style.display = 'block';
         // NEED notes object implementation
     } catch (error) {
         // Handle errors
@@ -217,12 +222,12 @@ async function get_tasks() {
             `;
             // prep dates for timezone change
             let temp_created_date = new Date(TASKS_OBJ['data'][i]['dateCreated']);
-            let temp_end_date = null;
-            let temp_start_date = null;
-            if (TASKS_OBJ['data'][i]['dateEnd'] !== "") {
+            let temp_end_date = "no end date";
+            let temp_start_date = "no start date";
+            if (TASKS_OBJ['data'][i]['dateEnd'] !== null) {
                 temp_end_date = new Date(TASKS_OBJ['data'][i]['dateEnd'] + 'Z');
             }
-            if (TASKS_OBJ['data'][i]['dateStart'] !== "") {
+            if (TASKS_OBJ['data'][i]['dateStart'] !== null) {
                 temp_start_date = new Date(TASKS_OBJ['data'][i]['dateStart'] + 'Z');
             }
             task_container.innerHTML += `
@@ -271,27 +276,33 @@ function sort_tasks() {
 /// calendar functions
 // RETURNS ???
 function set_cal_month_next(month, year) {
+    console.log(month, year);
     if (month === 11) {
-        cal_now_month = 1;
+        cal_now_month = 0;
         cal_now_year = ++year;
     }
     else {
         cal_now_month = ++month;
     }
+    // set calendar_view data to current month
+    id_calendar_view.dataset.view_config = cal_now_month.toString() + ',' + cal_now_year.toString();
 }
 
 // RETURNS ???
-function cal_month_prev(month, year) {
+function set_cal_month_prev(month, year) {
     if (month === 1) {
         cal_now_month = 11;
         cal_now_year = --year;
     }
-    cal_now_month = --month;
+    else {
+        cal_now_month = --month;
+    }
+    // set calendar_view data to current month
+    id_calendar_view.dataset.view_config = cal_now_month.toString() + ',' + cal_now_year.toString();
 }
 
 function draw_month(month, year) {
     try {
-        console.log(month, year);
         // prep
         let days_in_month = get_days_in_month(month, year);
         // First moment of the month
@@ -301,7 +312,8 @@ function draw_month(month, year) {
         let started_day_nums = false;
         let written_day_num = 1;
         // write month name
-        id_calendar_title.innerText = new Date(year, month).toLocaleString('default', { month: 'long' });
+        id_calendar_title.innerText = new Date(year, month).toLocaleString('default', { month: 'long' }) +
+        ': ' + year;
         id_calendar_view.innerHTML = '';
         // every month except for some rare February's have five weeks
         for (let row = 0; row < 5; row++) {
@@ -331,55 +343,24 @@ function draw_month(month, year) {
             }
             id_calendar_view.append(temp_row_div);
         }
-        // draw tasks on the calendar
+        //// draw tasks on the calendar
+        // skip if no tasks
         if (!TASKS_OBJ) {
+            console.log('no tasks to draw');
             return;
         }
-        // process each task
         let temp_obj = TASKS_OBJ['data'];
+        if (!temp_obj || temp_obj.length < 1) {
+            console.log('no tasks to draw');
+            return;
+        }
+        /// process each task
         for (let i = 0; i < temp_obj.length; i++) {
-            // set as UTC
-            let start_date_utc = new Date(temp_obj[i]['dateStart'] + 'Z');
-            let end_date_utc = new Date(temp_obj[i]['dateEnd'] + 'Z');
-            // first, draw what is recorded in recordedTasks array
-            if (temp_obj[i]['recordedTasks'].length > 0) {
-                // console.log(temp_obj[i]['recordedTasks']);
-                // console.log('gonna draw me some recordedTasks i am...');
-            }
-            // skip drawing task if no start date or if start date already in recordedTasks
-            // NEED to add check if start date in recordedTasks
-            if (!temp_obj[i]['dateStart']) {
-                continue;
-            }
-            // ...
-            let repeat_values = temp_obj[i]['repeat'].split(',');
-            // handle tasks with no repeat set up and no recordedTasks
-            if (repeat_values.length === 1 && temp_obj[i]['recordedTasks'].length === 0) {
-                // only draw tasks that exist within this month
-                console.log('month first moment', month_first_moment);
-                if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
-                    console.log('here');
-                    console.log(start_date_utc);
-                    console.log(month_first_moment);
-                    continue;
-                }
-                let day_element = document.getElementById('month' + start_date_utc.getDate().toString());
-                let temp_div = document.createElement('div');
-                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
-                temp_div.onclick = () => edit_task_popup(temp_div.id);
-                temp_div.style.borderColor = '#' + temp_obj[i]['color'];
-                temp_div.style.borderStyle = 'solid';
-                temp_div.innerText = temp_obj[i]['title'];
-                day_element.append(temp_div);
-                continue;
-            }
-            // first, take care of recordedTasks
+            // first, draw any recordedTasks (they don't rely on dateStart)
             let rec_tasks = temp_obj[i]['recordedTasks']
-            if (!rec_tasks || rec_tasks.length < 1) {
-                continue;
-            }
-            // process recordedTasks
-            for (let ii = 0; ii < rec_tasks.length; ii++) {
+            if (rec_tasks && rec_tasks.length > 0) {
+                for (let ii = 0; ii < rec_tasks.length; ii++) {
+                    // id: str:task_ObjectId,str:dateStart,str:dateEnd
                     let id_and_dates = rec_tasks[ii]['id'].split(',');
                     // handle dates
                     let temp_start_date = '';
@@ -404,10 +385,36 @@ function draw_month(month, year) {
                     temp_div.innerText = temp_obj[i]['title'];
                     day_element.append(temp_div);
                 }
-            // if (rec_tasks && rec_tasks.length > 0) {
-            //
-            // }
-
+            }
+            // second, draw single and repetitive tasks that are not already recordedTasks
+            // skip this task if it does not have a dateStart
+            if (!temp_obj[i]['dateStart']) {
+                continue;
+            }
+            // set as UTC
+            let start_date_utc = new Date(temp_obj[i]['dateStart'] + 'Z');
+            let end_date_utc = null;
+            if (temp_obj[i]['dateEnd'] !== null) {
+                end_date_utc = new Date(temp_obj[i]['dateEnd'] + 'Z');
+            }
+            // ...
+            let repeat_values = temp_obj[i]['repeat'].split(',');
+            // handle tasks with no repeat
+            if (repeat_values.length === 1) {
+                // only draw tasks that exist within this month
+                if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
+                    continue;
+                }
+                let day_element = document.getElementById('month' + start_date_utc.getDate().toString());
+                let temp_div = document.createElement('div');
+                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
+                temp_div.onclick = () => edit_task_popup(temp_div.id);
+                temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+                temp_div.style.borderStyle = 'dotted';
+                temp_div.innerText = temp_obj[i]['title'];
+                day_element.append(temp_div);
+                continue;
+            }
             /// handle daily repeat
             if (repeat_values[0] === 'daily') {
                 // console.log('repeat values: ', repeat_values[0]);
@@ -456,7 +463,7 @@ function draw_month(month, year) {
                         temp_div.id = rec_task_id;
                         temp_div.onclick = () => edit_task_popup(temp_div.id);
                         temp_div.style.borderColor = '#' + temp_obj[i]['color'];
-                        temp_div.style.borderStyle = 'solid';
+                        temp_div.style.borderStyle = 'dotted';
                         temp_div.innerText = temp_obj[i]['title'];
                         day_element.append(temp_div);
                     }
@@ -525,19 +532,155 @@ id_button_delete_no.onclick=function () {
 id_button_month_next.onclick=function () {
     set_cal_month_next(cal_now_month, cal_now_year);
     draw_month(cal_now_month, cal_now_year);
+    // store view change
+    const TASK_KEY = 'tasks';
+    const SORT_KEY = 'calendar_view';
+    const TASK_OBJ = {
+        [TASK_KEY]: {
+            [SORT_KEY]: id_calendar_view.dataset.view_config
+        }
+    };
+    view_update(TASK_OBJ).catch(error =>
+        console.error("Error in id_button_month_next.onclick:", error)
+    );
 }
 
 id_button_month_now.onclick=function () {
     const now_date = new Date();
-    set_cal_month_next(now_date.getMonth(), now_date.getFullYear());
-    draw_month(cal_now_month, cal_now_year);
+    draw_month(cal_now_month=now_date.getMonth(), cal_now_year=now_date.getFullYear());
+    // set calendar_view dataset view
+    id_calendar_view.dataset.view_config = cal_now_month.toString() + ',' + cal_now_year.toString();
+    // store view change
+    const TASK_KEY = 'tasks';
+    const SORT_KEY = 'calendar_view';
+    const TASK_OBJ = {
+        [TASK_KEY]: {
+            [SORT_KEY]: id_calendar_view.dataset.view_config
+        }
+    };
+    view_update(TASK_OBJ).catch(error =>
+        console.error("Error in id_button_month_now.onclick:", error)
+    );
 }
 
 id_button_month_prev.onclick=function () {
-    cal_month_prev(cal_now_month, cal_now_year);
+    set_cal_month_prev(cal_now_month, cal_now_year);
     draw_month(cal_now_month, cal_now_year);
+    // store view change
+    const TASK_KEY = 'tasks';
+    const SORT_KEY = 'calendar_view';
+    const TASK_OBJ = {
+        [TASK_KEY]: {
+            [SORT_KEY]: id_calendar_view.dataset.view_config
+        }
+    };
+    view_update(TASK_OBJ).catch(error =>
+        console.error("Error in id_button_month_prev.onclick:", error)
+    );
 }
-// NEEDS update to draw_month parameters
+
+id_button_t_delete_submit.onclick=async function () {
+    let id_form_id = document.getElementById('update_t_id');
+    let id_form_dateend = document.getElementById('update_t_dateend');
+    let id_form_datestart = document.getElementById('update_t_datestart');
+    let id_form_guests = document.getElementById('update_t_guests');
+    let id_form_intensity = document.getElementById('update_t_intensity');
+    let id_form_location = document.getElementById('update_t_location');
+    let id_form_status = document.getElementById('update_t_status');
+    let id_form_tags = document.getElementById('update_t_tags');
+    let id_form_note = document.getElementById('update_t_note');
+    // INPUT VALIDATION
+    let url = URL_BASE + '/t_delete/' + id_form_id.value;
+    // make asynchronous POST request to the API
+    let response = await fetch(url, { method: 'GET' });
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    // Parse the JSON data from the response
+    let data = await response.json();
+    if (data.statusCode != 200) {
+        id_t_update_error_message.textContent = 'Error deleting recordedTask: non-200 response received...';
+        id_t_update_error_message.style.display = 'flex';
+        return;
+    }
+    close_popups();
+    // blank out values
+    id_form_dateend.value = '';
+    id_form_datestart.value = '';
+    id_form_guests.value = '';
+    id_form_intensity.value = '';
+    id_form_location.value = '';
+    id_form_status.value = '';
+    id_form_tags.value = '';
+    id_form_note.value = '';
+    get_tasks()
+        .then(() => {
+            draw_month(cal_now_month, cal_now_year);
+        })
+        .catch(error => console.error("Error in get_tasks:", error));
+}
+
+id_button_t_update_submit.onclick=async  function () {
+    let id_form_id = document.getElementById('update_t_id');
+    let id_form_dateend = document.getElementById('update_t_dateend');
+    let id_form_datestart = document.getElementById('update_t_datestart');
+    let id_form_guests = document.getElementById('update_t_guests');
+    let id_form_intensity = document.getElementById('update_t_intensity');
+    let id_form_location = document.getElementById('update_t_location');
+    let id_form_status = document.getElementById('update_t_status');
+    let id_form_tags = document.getElementById('update_t_tags');
+    let id_form_note = document.getElementById('update_t_note');
+    // INPUT VALIDATION
+    // fix dates before populating object
+    let date_end = null;
+    let date_start = null;
+    if (id_form_dateend.value !== "") {
+        date_end = new Date(id_form_dateend.value).toISOString().slice(0, -5);
+    }
+    if (id_form_datestart.value !== "") {
+        date_start = new Date(id_form_datestart.value).toISOString().slice(0, -5);
+    }
+    let recorded_task_obj = {
+        'id': id_form_id.value,
+        'dateEnd': date_end,
+        'dateStart': date_start,
+        'guests': id_form_guests.value,
+        'intensity': id_form_intensity.value,
+        'location': id_form_location.value,
+        'note': id_form_note.value,
+        'status': id_form_status.value,
+        'tags': id_form_tags.value,
+    }
+    let url = URL_BASE + '/t_update/' + JSON.stringify(recorded_task_obj);
+    // make asynchronous POST request to the API
+    let response = await fetch(url, { method: 'GET' });
+    if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    // Parse the JSON data from the response
+    let data = await response.json();
+    if (data.statusCode != 200) {
+        id_t_update_error_message.textContent = 'Error updating recordedTask: non-200 response received...';
+        id_t_update_error_message.style.display = 'flex';
+        return;
+    }
+    close_popups();
+    // blank out values
+    id_form_dateend.value = '';
+    id_form_datestart.value = '';
+    id_form_guests.value = '';
+    id_form_intensity.value = '';
+    id_form_location.value = '';
+    id_form_status.value = '';
+    id_form_tags.value = '';
+    id_form_note.value = '';
+    get_tasks()
+        .then(() => {
+            draw_month(cal_now_month, cal_now_year);
+        })
+        .catch(error => console.error("Error in get_tasks:", error));
+}
+
 id_button_task_create_submit.onclick=async function () {
     try {
         let id_form_color = document.getElementById('create_task_color');
@@ -624,7 +767,7 @@ id_button_task_create_submit.onclick=async function () {
         get_tasks()
             .then(() => {
                 // CHANGE
-                draw_month(11, 2024);
+                draw_month(cal_now_month, cal_now_year);
             })
             .catch(error => console.error("Error in get_tasks:", error));
     } catch (error) {
@@ -633,66 +776,6 @@ id_button_task_create_submit.onclick=async function () {
     }
 }
 
-id_button_t_update_submit.onclick=async  function () {
-    let id_form_id = document.getElementById('update_t_id');
-    let id_form_dateend = document.getElementById('update_t_dateend');
-    let id_form_datestart = document.getElementById('update_t_datestart');
-    let id_form_guests = document.getElementById('update_t_guests');
-    let id_form_intensity = document.getElementById('update_t_intensity');
-    let id_form_location = document.getElementById('update_t_location');
-    let id_form_status = document.getElementById('update_t_status');
-    let id_form_tags = document.getElementById('update_t_tags');
-    let id_form_note = document.getElementById('update_t_note');
-    // INPUT VALIDATION
-    // fix dates before populating object
-    let date_end = null;
-    let date_start = null;
-    if (id_form_dateend.value !== "") {
-        date_end = new Date(id_form_dateend.value).toISOString().slice(0, -5);
-    }
-    if (id_form_datestart.value !== "") {
-        date_start = new Date(id_form_datestart.value).toISOString().slice(0, -5);
-    }
-    let recorded_task_obj = {
-        'id': id_form_id.value,
-        'dateEnd': date_end,
-        'dateStart': date_start,
-        'guests': id_form_guests.value,
-        'intensity': id_form_intensity.value,
-        'location': id_form_location.value,
-        'note': id_form_note.value,
-        'status': id_form_status.value,
-        'tags': id_form_tags.value,
-    }
-    let url = URL_BASE + '/t_update/' + JSON.stringify(recorded_task_obj);
-    // make asynchronous POST request to the API
-    let response = await fetch(url, { method: 'GET' });
-    if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    // Parse the JSON data from the response
-    let data = await response.json();
-    if (data.statusCode != 200) {
-        id_t_update_error_message.textContent = 'Error creating task: non-200 response received...';
-        id_t_update_error_message.style.display = 'flex';
-        return;
-    }
-    close_popups();
-    // blank out values
-    id_form_guests.value = '';
-    id_form_intensity.value = '';
-    id_form_location.value = '';
-    id_form_status.value = '';
-    id_form_tags.value = '';
-    id_form_note.value = '';
-    get_tasks()
-        .then(() => {
-            // CHANGE
-            draw_month(11, 2024);
-        })
-        .catch(error => console.error("Error in get_tasks:", error));
-}
-// NEEDS update to draw_month parameters
 id_button_task_update_submit.onclick = async function () {
     try {
         let id_form_id = document.getElementById('update_task_id');
@@ -757,7 +840,7 @@ id_button_task_update_submit.onclick = async function () {
         get_tasks()
             .then(() => {
                 // CHANGE
-                draw_month(11, 2024);
+                draw_month(cal_now_month, cal_now_year);
             })
             .catch(error => console.error("Error in get_tasks:", error));
     } catch (error) {
@@ -775,7 +858,7 @@ id_select_sort_by.onclick = function () {
         last_sort_by = id_select_sort_by.value;
         // Sort tasks
         sort_tasks();
-        // Store view change
+        // store view change
         const TASK_KEY = 'tasks';
         const SORT_KEY = 'select_sort_by';
         const TASK_OBJ = {
@@ -810,6 +893,14 @@ window.onload=function () {
             // sort tasks
             if (id_select_sort_by.value !== "") {
                 sort_tasks();
+            }
+            // re-assign cal_now_month, cal_now_year if calendar_view value set during view_apply
+            if (id_calendar_view.dataset.view_config !== "") {
+                let temp_array = id_calendar_view.dataset.view_config.split(',');
+                if (temp_array.length === 2) {
+                    cal_now_month = parseInt(temp_array[0]);
+                    cal_now_year = parseInt(temp_array[1]);
+                }
             }
             draw_month(cal_now_month, cal_now_year);
         })
