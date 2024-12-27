@@ -15,6 +15,7 @@ function view_apply() {
         // skip assigning value if id cannot be found
         if (temp_doc) {
             temp_doc.value = VIEWS_OBJ[object_keys[i]];
+            temp_doc.dataset.view_config = VIEWS_OBJ[object_keys[i]];
         }
     }
 }
