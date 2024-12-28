@@ -114,6 +114,7 @@
 }
 #task_create_container {
     border: black 1px solid;
+    cursor: grab;
     display: none;
     flex-direction: column;
     position: fixed;         /* Locks the div in place, even when scrolling */

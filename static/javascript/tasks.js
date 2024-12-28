@@ -344,9 +344,19 @@ function getDSTStart(year) {
 }
 
 // RETURNS ???
+// Chat GPT
 function getFirstDayOfMonth(inputDate) {
     const date = new Date(inputDate);// Ensure the input is a Date object
     date.setDate(1);// Set the date to the first day of the month
+    return date;
+}
+
+// RETURNS ???
+// Chat GPT
+function getLastDayOfMonth(inputDate) {
+    const date = new Date(inputDate);// Ensure the input is a Date object
+    date.setMonth(date.getMonth() + 1);// Move to the first day of the next month
+    date.setDate(0); // Set date to the last day of the previous month
     return date;
 }
 
@@ -594,9 +604,6 @@ function draw_month(month, year) {
                 }
             }
             else if (repeat_values[0] === 'minutes') {}
-
-
-
             // handle monthly repeat
             else if (repeat_values[0] === 'monthly') {
                 if (!is_never) {// set final_date as UTC
@@ -608,8 +615,6 @@ function draw_month(month, year) {
                     // final_date explicitly defined
                     else { final_date = new Date(repeat_values[2] + 'Z'); }
                 }
-
-
                 // first day of the month from dateStart
                 const first_month_day_start = getFirstDayOfMonth(start_date_utc);
                 // skip if task end date is before this month
@@ -617,7 +622,6 @@ function draw_month(month, year) {
                 // process n number of tasks in the series and print if in this month
                 outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {
                     const chosen_month_days = repeat_values[3].split('-');
-
                     let month_first_day_end = '';
                     if (end_date_utc) {
                             month_first_day_end = new Date(end_date_utc);
@@ -626,7 +630,21 @@ function draw_month(month, year) {
                     // get to this month
                     let month_first_day_start = new Date(first_month_day_start);
                     month_first_day_start.setMonth(month_first_day_start.getMonth() + (skip_amt * ii));
-
+                    const this_month_last_day = getLastDayOfMonth(month_first_day_start).getDate()
+                    // remove dates that aren't in this month
+                    for (let iii = 0; iii < chosen_month_days.length; iii++) {
+                        if (chosen_month_days[iii] > this_month_last_day) {
+                            chosen_month_days.splice(iii, 1);
+                        }
+                    }
+                    // handle logic where the last day of the month should have a task regardless if that last day
+                    // is 28..31
+                    if  (repeat_values[4] === '1') {
+                        const last_day_string = this_month_last_day.toString();
+                        if (!chosen_month_days.includes(last_day_string)) {
+                            chosen_month_days.push(last_day_string);
+                        }
+                    }
                     // process all days in the month that should be written to
                     for (let iii = 0; iii < chosen_month_days.length; iii++) {
                         let temp_end_date = '';
@@ -636,7 +654,6 @@ function draw_month(month, year) {
                         }
                         let temp_start_date = new Date(month_first_day_start);
                         temp_start_date.setDate(temp_start_date.getDate() + parseInt(chosen_month_days[iii]) - 1);
-                        console.log('asdfasdf temp date', temp_start_date);
                         // skip if past final_date
                         if (final_date && temp_start_date > final_date) { break outerLoop; }
                         // break out of both loops if task in series is past this month
@@ -649,10 +666,8 @@ function draw_month(month, year) {
                         // NO IDEA WHY THIS IS DIFFERENT THAN THE OTHER REPEAT TYPES...
                         if (temp_start_date < dst_start || temp_start_date > dst_end) {
                             temp_start_date.setHours(temp_start_date.getHours() - 1);// ???
-                            console.log('temp start date: ', temp_start_date);
                             if (temp_end_date) {
                                 temp_end_date.setHours(temp_end_date.getHours() - 1);
-                                console.log('temp end date: ', temp_end_date);
                             }
                         }
                         // convert temp_end_date to string as rec_task_id assignment requires it
