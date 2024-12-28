@@ -130,7 +130,7 @@ function edit_task_popup(task_id) {
         }
         // take care of dates in repeat if there
         // true == forward in time
-        let repeat_vals = convert_date_strings_to_local(local_task['repeat'], false);
+        let repeat_vals = convert_date_strings_to_local(local_task['repeat'], true);
         // console.log('dateStart', local_task['dateStart']);
         document.getElementById('update_task_id').value = id_and_dates[0];
         document.getElementById('update_task_color').value = '#' + local_task['color'];
@@ -263,7 +263,7 @@ async function get_tasks() {
                 temp_start_date = new Date(TASKS_OBJ['data'][i]['dateStart'] + 'Z');
             }
             // take care of dates in repeat if there
-            let repeat_vals = convert_date_strings_to_local(TASKS_OBJ['data'][i]['repeat']);
+            let repeat_vals = convert_date_strings_to_local(TASKS_OBJ['data'][i]['repeat'], true);
             task_container.innerHTML += `
                 ${TASKS_OBJ['data'][i]['_id']}
                 <div><b>Title:</b> ${TASKS_OBJ['data'][i]['title']}</div>
