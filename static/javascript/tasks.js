@@ -66,6 +66,22 @@ function confirm_delete_popup(task_id) {
     }
 }
 
+// RETURN input string if no date string found || strings converted to local time if found
+function convert_date_strings_to_local(input_string, plus_or_minus) {
+    if (input_string.includes('T')) {
+        // if plus_or_minus is false remove OFFSET_VALUE, if true then add
+        let OFFSET_AMT = plus_or_minus ? -OFFSET_VALUE : OFFSET_VALUE;
+        let return_string = input_string.split(',');
+        for (let ii = 0; ii < return_string.length; ii++) {
+            if (return_string[ii].includes('T')) {
+                return_string[ii] = new Date(new Date(return_string[ii] + 'Z') - OFFSET_AMT).toISOString().slice(0, -5);
+            }
+        }
+        return return_string.join(',');
+    }
+    return input_string;
+}
+
 async function delete_task(task_id) {
     try {
         console.log(task_id);
@@ -101,18 +117,33 @@ function edit_task_popup(task_id) {
         if (!local_task) {
             throw new Error('local_task returned null...');// exit
         }
+        // prep dates as UTC
+        let temp_start_date = '';
+        if (local_task['dateStart'] !== null) {
+            temp_start_date = new Date(local_task['dateStart'] + 'Z');
+            temp_start_date = new Date(temp_start_date - OFFSET_VALUE).toISOString().slice(0,-5);
+        }
+        let temp_end_date = '';
+        if (local_task['dateEnd'] !== null) {
+            temp_end_date = new Date(local_task['dateEnd'] + 'Z');
+            temp_end_date = new Date(temp_end_date - OFFSET_VALUE).toISOString().slice(0,-5);
+        }
+        // take care of dates in repeat if there
+        // true == forward in time
+        let repeat_vals = convert_date_strings_to_local(local_task['repeat'], false);
+        // console.log('dateStart', local_task['dateStart']);
         document.getElementById('update_task_id').value = id_and_dates[0];
         document.getElementById('update_task_color').value = '#' + local_task['color'];
         document.getElementById('update_task_title').value = local_task['title'];
-        document.getElementById('update_task_datestart').value = local_task['dateStart'];
-        document.getElementById('update_task_dateend').value = local_task['dateEnd'];
+        document.getElementById('update_task_datestart').value = temp_start_date;
+        document.getElementById('update_task_dateend').value = temp_end_date;
         document.getElementById('update_task_description').value = local_task['description'];
         document.getElementById('update_task_location').value = local_task['location'];
         document.getElementById('update_task_guests').value = local_task['guests'];
         // document.getElementById('update_task_intensity').value = local_task['intensity'];
         document.getElementById('update_task_priority').value = local_task['priority'];
         document.getElementById('update_task_reminder').value = local_task['reminder'];
-        document.getElementById('update_task_repeat').value = local_task['repeat'];
+        document.getElementById('update_task_repeat').value = repeat_vals;
         document.getElementById('update_task_tags').value = local_task['tags'];
         document.getElementById('update_task_text').value = local_task['text'];
         id_task_edit_container.style.display = 'flex';
@@ -128,6 +159,7 @@ function edit_task_popup(task_id) {
         // handle UTC to local time conversion
         const local_start_date = new Date(new Date(id_and_dates[1] + 'Z') - OFFSET_VALUE);
         document.getElementById('update_t_datestart').value = local_start_date.toISOString().slice(0,-5);
+        // console.log('dateStart', local_start_date);
         // handle potential dateend nulls and then UTC to local time conversion
         if (id_and_dates[2] !== '') {
             const local_end_date = new Date(new Date(id_and_dates[2] + 'Z') - OFFSET_VALUE);
@@ -213,7 +245,7 @@ async function get_tasks() {
             task_container.dataset.textlength = TASKS_OBJ['data'][i]['text'].length;
             task_container.dataset.title = TASKS_OBJ['data'][i]['title'];
             task_container.innerHTML = `
-                <div class="note_menu">
+                <div class="task_menu">
                     <div class="button button_delete" 
                          onclick="confirm_delete_popup('${TASKS_OBJ['data'][i]['_id']}')">DELETE</div>
                     <div class="button button_edit" 
@@ -230,6 +262,8 @@ async function get_tasks() {
             if (TASKS_OBJ['data'][i]['dateStart'] !== null) {
                 temp_start_date = new Date(TASKS_OBJ['data'][i]['dateStart'] + 'Z');
             }
+            // take care of dates in repeat if there
+            let repeat_vals = convert_date_strings_to_local(TASKS_OBJ['data'][i]['repeat']);
             task_container.innerHTML += `
                 ${TASKS_OBJ['data'][i]['_id']}
                 <div><b>Title:</b> ${TASKS_OBJ['data'][i]['title']}</div>
@@ -242,7 +276,7 @@ async function get_tasks() {
                 <div><b>Date Start:</b> ${temp_start_date.toString()}</div>
                 <div><b>Date End:</b> ${temp_end_date.toString()}</div>
                 <div><b>reminder:</b> ${TASKS_OBJ['data'][i]['reminder']}</div>
-                <div><b>repeat:</b> ${TASKS_OBJ['data'][i]['repeat']}</div>
+                <div><b>repeat:</b> ${repeat_vals}</div>
                 <div><b>recordedTasks log drop down goes here</b></div>
             `;
             id_tasks_container.append(task_container);
@@ -274,6 +308,38 @@ function sort_tasks() {
 }
 
 /// calendar functions
+// RETURNS None if no DST end found || LOCALIZED date if found
+// ChatGPT
+function getDSTEnd(year) {
+    // Find the first day of November
+    const novemberFirst = new Date(year, 10, 1); // Month is 0-indexed (10 = November)
+    // Find the first Sunday of November
+    const firstSunday = new Date(
+        novemberFirst.getTime() + ((7 - novemberFirst.getDay()) % 7) * 24 * 60 * 60 * 1000
+    );
+    // Set the time to 2:00 AM local time
+    firstSunday.setHours(2, 0, 0, 0);
+    return firstSunday;
+}
+
+// RETURNS None if no DST start found || LOCALIZED date if found
+// ChatGPT
+function getDSTStart(year) {
+    const standardOffset = new Date(year, 0, 1).getTimezoneOffset(); // Offset in standard time
+    for (let month = 0; month < 12; month++) {
+        for (let day = 1; day <= 31; day++) {
+            const date = new Date(year, month, day);
+            if (date.getMonth() !== month) break; // Handle invalid dates (e.g., Feb 30)
+            const currentOffset = date.getTimezoneOffset();
+            if (currentOffset < standardOffset) {
+                // DST starts at 2:00 AM local time
+                return new Date(year, month, day, 2, 0, 0);
+            }
+        }
+    }
+    return null; // No DST transition found
+}
+
 // RETURNS ???
 function set_cal_month_next(month, year) {
     console.log(month, year);
@@ -303,18 +369,19 @@ function set_cal_month_prev(month, year) {
 
 function draw_month(month, year) {
     try {
-        // prep
+        ///// draw the calendar for this month
+        // number of days in month
         let days_in_month = get_days_in_month(month, year);
         // First moment of the month
         const month_first_moment = new Date(year, month, 1, 0, 0, 0, 0);
         // Last moment of the month: Day 0 of the next month gives the last day of this month
         const month_last_moment = new Date(year, month + 1, 0, 23, 59, 59, 999);
-        let started_day_nums = false;
-        let written_day_num = 1;
+        let started_day_nums = false; // used to determine if month days have started assignment
+        let written_day_num = 1; // first day of the month for every month :D
         // write month name
         id_calendar_title.innerText = new Date(year, month).toLocaleString('default', { month: 'long' }) +
         ': ' + year;
-        id_calendar_view.innerHTML = '';
+        id_calendar_view.innerHTML = ''; // wipe before re-drawing calendar
         // every month except for some rare February's have five weeks
         for (let row = 0; row < 5; row++) {
             let temp_row_div = document.createElement('div');
@@ -343,8 +410,8 @@ function draw_month(month, year) {
             }
             id_calendar_view.append(temp_row_div);
         }
-        //// draw tasks on the calendar
-        // skip if no tasks
+        ///// draw tasks on the calendar
+        /// skip if no tasks
         if (!TASKS_OBJ) {
             console.log('no tasks to draw');
             return;
@@ -354,7 +421,7 @@ function draw_month(month, year) {
             console.log('no tasks to draw');
             return;
         }
-        /// process each task
+        //// process each task
         for (let i = 0; i < temp_obj.length; i++) {
             // first, draw any recordedTasks (they don't rely on dateStart)
             let rec_tasks = temp_obj[i]['recordedTasks']
@@ -397,14 +464,26 @@ function draw_month(month, year) {
             if (temp_obj[i]['dateEnd'] !== null) {
                 end_date_utc = new Date(temp_obj[i]['dateEnd'] + 'Z');
             }
-            // ...
+            // repeat_values possibilities:
+            // minutes,n,date|n|never
+            // daily,n,date|n|never
+            // weekly,n,thee-char-days-of-week-concatenated,date|n|never
+            // monthly,n,two-char-days-of-month-concatenated,bool,date|n|never
+            // trigger,n,date|n|never
             let repeat_values = temp_obj[i]['repeat'].split(',');
-            // handle tasks with no repeat
+            /// handle tasks with no repeat
             if (repeat_values.length === 1) {
                 // only draw tasks that exist within this month
                 if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
                     continue;
                 }
+                // skip if recordedTask already exists with same start/end date combo
+                const rec_task_id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
+                const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
+                if (found_rTask > -1) {
+                    continue;
+                }
+                // write task
                 let day_element = document.getElementById('month' + start_date_utc.getDate().toString());
                 let temp_div = document.createElement('div');
                 temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
@@ -417,56 +496,84 @@ function draw_month(month, year) {
             }
             /// handle daily repeat
             if (repeat_values[0] === 'daily') {
-                // console.log('repeat values: ', repeat_values[0]);
-                // handle never
-                if (repeat_values[2] === 'never') { // NEEDS
-
+                // console.log('repeat values: ', repeat_values);
+                let is_n = is_all_digits(repeat_values[2]);// true if repeat n times
+                let is_never = repeat_values[2] === 'never';// true if repeat never
+                // set how many days to skip
+                let skip_amt = parseInt(repeat_values[1]);
+                // calculate final_date
+                let final_date = null;
+                let occurrences = 0;
+                if (!is_never) {// set final_date as UTC
+                    if (is_n) {// final_date calculated from start_date by n
+                        occurrences = parseInt(repeat_values[2]);
+                        final_date = new Date(start_date_utc);
+                        final_date.setDate(final_date.getDate() + (skip_amt * occurrences));
+                    }
+                    else {// final_date explicitly defined
+                        final_date = new Date(repeat_values[2] + 'Z');
+                        // console.log('final_date explicitly defined: ', final_date);
+                    }
+                }// final_date.setDate(final_date.getDate() + (skip_amt * occurrences));
+                // skip if task end date is before this month
+                if (final_date && final_date < month_first_moment) {
+                    continue;
                 }
-                // handle 'n' occurrences
-                if (is_all_digits(repeat_values[2])) {
-                    let occurrences = parseInt(repeat_values[2]);
-                    let skip_amt = parseInt(repeat_values[1]);
-                    let last_date = new Date(start_date_utc);
-                    last_date.setDate(last_date.getDate() + (skip_amt * occurrences));
-                    // skip if task end date is before this month
-                    if (last_date < month_first_moment) {
-                        console.log('the last date of the series was before this months first moment');
+                // process n number of tasks in the series and print if in this month
+                for (let ii = 0; is_never || final_date || ii < occurrences; ii++) {
+                    // prep dates
+                    let temp_start_date = new Date(start_date_utc);
+                    temp_start_date.setDate(temp_start_date.getDate() + (skip_amt * ii));
+                    // skip if past final_date
+                    if (final_date && temp_start_date > final_date) {
+                        // console.log('temp_start_date: ', temp_start_date);
+                        break;
+                    }
+                    let temp_end_date = '';
+                    if (end_date_utc) {
+                        temp_end_date = new Date(end_date_utc);
+                        temp_end_date.setDate(temp_end_date.getDate() + (skip_amt * ii));
+                    }
+                    // handle daylight savings time
+                    const dst_end = getDSTEnd(start_date_utc.getFullYear());// LOCALIZED DATE
+                    const dst_start = getDSTStart(start_date_utc.getFullYear());// LOCALIZED DATE
+                    if (temp_start_date > dst_start && temp_start_date < dst_end) {
+                        temp_start_date.setHours(temp_start_date.getHours() + 1);// add one hour
+                        if (temp_end_date) {
+                            temp_end_date.setHours(temp_end_date.getHours() + 1);
+                        }
+                    }
+                    // convert temp_end_date to string as rec_task_id assignment requires it
+                    if (temp_end_date) {
+                        temp_end_date = temp_end_date.toISOString().slice(0, -5);
+                    }
+                    // break out of loop if task in series is past this month
+                    if (temp_start_date > month_last_moment) {
+                        // console.log('task in series after this month');
+                        break;
+                    }
+                    // skip if task in series is before this month
+                    if (temp_start_date < month_first_moment) {
+                        // console.log('task in series before this month');
                         continue;
                     }
-                    // process n number of tasks in the series and print if in this month
-                    for (let ii = 0; ii < occurrences; ii++) {
-                        // console.log(temp_obj[i]['title']);
-                        let temp_start_date = new Date(start_date_utc);
-                        let temp_end_date = new Date(end_date_utc);
-                        temp_start_date.setDate(temp_start_date.getDate() + (skip_amt * ii));
-                        temp_end_date.setDate(temp_end_date.getDate() + (skip_amt * ii));
-                        // break out of loop if task in series is past this month
-                        if (temp_start_date > month_last_moment) {
-                            // console.log('task in series after this month');
-                            break;
-                        }
-                        // skip if task in series is before this month
-                        if (temp_start_date < month_first_moment) {
-                            // console.log('task in series before this month');
-                            continue;
-                        }
-                        // skip drawing if in recordedTasks
-                        const rec_task_id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5)
-                            + ',' + temp_end_date.toISOString().slice(0, -5);
-                        const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
-                        if (found_rTask > -1) {
-                            continue;
-                        }
-                        let month_day = temp_start_date.getDate();// should be local time?
-                        let day_element = document.getElementById('month' + month_day.toString());
-                        let temp_div = document.createElement('div');
-                        temp_div.id = rec_task_id;
-                        temp_div.onclick = () => edit_task_popup(temp_div.id);
-                        temp_div.style.borderColor = '#' + temp_obj[i]['color'];
-                        temp_div.style.borderStyle = 'dotted';
-                        temp_div.innerText = temp_obj[i]['title'];
-                        day_element.append(temp_div);
+                    // skip drawing if in recordedTasks
+                    const rec_task_id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5)
+                        + ',' + temp_end_date;
+                    const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
+                    if (found_rTask > -1) {
+                        continue;
                     }
+                    // time to draw
+                    let month_day = temp_start_date.getDate();// should be local time?
+                    let day_element = document.getElementById('month' + month_day.toString());
+                    let temp_div = document.createElement('div');
+                    temp_div.id = rec_task_id;
+                    temp_div.onclick = () => edit_task_popup(temp_div.id);
+                    temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+                    temp_div.style.borderStyle = 'dotted';
+                    temp_div.innerText = temp_obj[i]['title'];
+                    day_element.append(temp_div);
                 }
             }
         }
@@ -806,6 +913,8 @@ id_button_task_update_submit.onclick = async function () {
         if (id_form_datestart.value !== "") {
              date_start = new Date(id_form_datestart.value).toISOString();
         }
+        // handle any dates in repeat
+        let repeat_vals = convert_date_strings_to_local(id_form_repeat.value, false);
         let task_obj = {
             'id': id_form_id.value,
             'color': id_form_color.value.substring(1, id_form_color.value.length),
@@ -818,7 +927,7 @@ id_button_task_update_submit.onclick = async function () {
             'parents': [],
             'priority': id_form_priority.value,
             'reminder': id_form_reminder.value,
-            'repeat': id_form_repeat.value,
+            'repeat': repeat_vals,
             'tags': id_form_tags.value,
             'text': id_form_text.value,
             'title': id_form_title.value,
