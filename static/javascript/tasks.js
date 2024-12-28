@@ -343,6 +343,13 @@ function getDSTStart(year) {
     return null; // No DST transition found
 }
 
+// RETURNS ???
+function getFirstDayOfMonth(inputDate) {
+    const date = new Date(inputDate);// Ensure the input is a Date object
+    date.setDate(1);// Set the date to the first day of the month
+    return date;
+}
+
 // RETURNS
 // ChatGPT
 function getPreviousSunday(inputDate) {
@@ -587,9 +594,87 @@ function draw_month(month, year) {
                 }
             }
             else if (repeat_values[0] === 'minutes') {}
+
+
+
             // handle monthly repeat
             else if (repeat_values[0] === 'monthly') {
+                if (!is_never) {// set final_date as UTC
+                    if (is_n) {// final_date calculated from start_date by n
+                        occurrences = parseInt(repeat_values[2]);
+                        final_date = new Date(start_date_utc);
+                        final_date.setMonth(final_date.getMonth() + (skip_amt * occurrences));
+                    }
+                    // final_date explicitly defined
+                    else { final_date = new Date(repeat_values[2] + 'Z'); }
+                }
 
+
+                // first day of the month from dateStart
+                const first_month_day_start = getFirstDayOfMonth(start_date_utc);
+                // skip if task end date is before this month
+                if (final_date && final_date < first_month_day_start) { continue; }
+                // process n number of tasks in the series and print if in this month
+                outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {
+                    const chosen_month_days = repeat_values[3].split('-');
+
+                    let month_first_day_end = '';
+                    if (end_date_utc) {
+                            month_first_day_end = new Date(end_date_utc);
+                            month_first_day_end.setMonth(month_first_day_end.getMonth() + (skip_amt * ii));
+                        }
+                    // get to this month
+                    let month_first_day_start = new Date(first_month_day_start);
+                    month_first_day_start.setMonth(month_first_day_start.getMonth() + (skip_amt * ii));
+
+                    // process all days in the month that should be written to
+                    for (let iii = 0; iii < chosen_month_days.length; iii++) {
+                        let temp_end_date = '';
+                        if (month_first_day_end) {
+                            temp_end_date = new Date(month_first_day_end);
+                            temp_end_date.setDate(month_first_day_end.getDate() + parseInt(chosen_month_days[iii]) - 1);
+                        }
+                        let temp_start_date = new Date(month_first_day_start);
+                        temp_start_date.setDate(temp_start_date.getDate() + parseInt(chosen_month_days[iii]) - 1);
+                        console.log('asdfasdf temp date', temp_start_date);
+                        // skip if past final_date
+                        if (final_date && temp_start_date > final_date) { break outerLoop; }
+                        // break out of both loops if task in series is past this month
+                        if (temp_start_date > month_last_moment) { break outerLoop; }
+                        // skip if task in series is before this month
+                        if (temp_start_date < month_first_moment) { continue; }
+                        // handle daylight savings time
+                        const dst_end = getDSTEnd(temp_start_date.getFullYear());// LOCALIZED DATE
+                        const dst_start = getDSTStart(temp_start_date.getFullYear());// LOCALIZED DATE
+                        // NO IDEA WHY THIS IS DIFFERENT THAN THE OTHER REPEAT TYPES...
+                        if (temp_start_date < dst_start || temp_start_date > dst_end) {
+                            temp_start_date.setHours(temp_start_date.getHours() - 1);// ???
+                            console.log('temp start date: ', temp_start_date);
+                            if (temp_end_date) {
+                                temp_end_date.setHours(temp_end_date.getHours() - 1);
+                                console.log('temp end date: ', temp_end_date);
+                            }
+                        }
+                        // convert temp_end_date to string as rec_task_id assignment requires it
+                        if (temp_end_date) { temp_end_date = temp_end_date.toISOString().slice(0, -5); }
+                        // skip drawing if in recordedTasks
+                        const rec_task_id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5)
+                            + ',' + temp_end_date;
+                        // console.log('rectaskid: ', rec_task_id);
+                        const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
+                        if (found_rTask > -1) { continue; }
+                        // time to draw
+                        let month_day = temp_start_date.getDate();// should be local time?
+                        let day_element = document.getElementById('month' + month_day.toString());
+                        let temp_div = document.createElement('div');
+                        temp_div.id = rec_task_id;
+                        temp_div.onclick = () => edit_task_popup(temp_div.id);
+                        temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+                        temp_div.style.borderStyle = 'dotted';
+                        temp_div.innerText = temp_obj[i]['title'];
+                        day_element.append(temp_div);
+                    }
+                }
             }
             /// handle weekly repeat
             else if (repeat_values[0] === 'weekly') {
@@ -609,11 +694,8 @@ function draw_month(month, year) {
                 // process n number of tasks in the series and print if in this month week
                 outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {
                     const chosen_weekdays = repeat_values[3].split('-');
-                    // console.log(chosen_weekdays);
-                    // console.log('occurrences: ', occurrences);
                     let this_sunday = new Date(first_sunday);
                     this_sunday.setDate(this_sunday.getDate() + (skip_amt * ii * 7));
-                    // console.log('this sundaaaay: ', this_sunday);
                     // weekdays
                     for (let iii = 0; iii < chosen_weekdays.length; iii++) {
                         let temp_start_date = new Date(this_sunday);
@@ -642,13 +724,13 @@ function draw_month(month, year) {
                                 temp_end_date.setHours(temp_end_date.getHours() + 1);
                             }
                         }
-                        // console.log('temp_start_+date: ', temp_start_date);
+                        // convert temp_end_date to string as rec_task_id assignment requires it
+                        if (temp_end_date) { temp_end_date = temp_end_date.toISOString().slice(0, -5); }
                         // skip drawing if in recordedTasks
                         const rec_task_id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5)
                             + ',' + temp_end_date;
                         const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
                         if (found_rTask > -1) { continue; }
-                        // console.log('ii: ', ii);
                         // time to draw
                         let month_day = temp_start_date.getDate();// should be local time?
                         let day_element = document.getElementById('month' + month_day.toString());
