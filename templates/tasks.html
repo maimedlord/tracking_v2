@@ -37,8 +37,9 @@
             <label for="create_task_repeat">repeat:</label><br>
             <i>minutes,n,date|n|never</i><br>
             <i>daily,n,date|n|never</i><br>
-            <i>weekly,n,thee-char-days-of-week-concatenated,date|n|never</i><br>
-            <i>monthly,n,two-char-days-of-month-concatenated,bool,date|n|never</i><br>
+            <i>weekly,n,date|n|never,thee-char-days-of-week-'-'-delimited</i><br>
+            <i>monthly,n,date|n|never,two-char-days-of-month-concatenated,bool</i><br>
+            <i>trigger,n,date|n|never</i><br>
             <input id="create_task_repeat" name="create_task_repeat" type="text"><br>
             <label for="create_task_guests">guests:</label><br>
             <input class="input_field_text" id="create_task_guests" name="create_task_guests" type="text"><br>
@@ -141,8 +142,9 @@
                 <label for="update_task_repeat">repeat:</label><br>
                 <i>minutes,n,date|n|never</i><br>
                 <i>daily,n,date|n|never</i><br>
-                <i>weekly,n,thee-char-days-of-week-concatenated,date|n|never</i><br>
-                <i>monthly,n,two-char-days-of-month-concatenated,bool,date|n|never</i><br>
+                <i>weekly,n,date|n|never,thee-char-days-of-week-'-'-delimited</i><br>
+                <i>monthly,n,date|n|never,two-char-days-of-month-concatenated,bool</i><br>
+                <i>trigger,n,date|n|never</i><br>
                 <input id="update_task_repeat" name="update_task_repeat" type="text"><br>
                 <label for="update_task_location">location:</label><br>
                 <input id="update_task_location" name="update_task_location"  type="text"><br>
@@ -177,6 +179,8 @@
                 <option value="dateend,1">date end descending</option>
                 <option value="intensity,0">intensity ascending</option>
                 <option value="intensity,1">intensity descending</option>
+                <option value="recordedtasksnum,0">number of recordedTasks ascending</option>
+                <option value="recordedtasksnum,1">number of recordedTasks descending</option>
                 <option value="priority,0">priority ascending</option>
                 <option value="priority,1">priority descending</option>
                 <option value="textlength,0">text length ascending</option>
