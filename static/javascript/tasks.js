@@ -487,17 +487,22 @@ function draw_month(month, year) {
                     day_element.append(temp_div);
                 }
             }
-            // second, draw single and repetitive tasks that are not already recordedTasks
+            // second, draw single, repetitive tasks that are not already recordedTasks
             // skip this task if it does not have a dateStart
             if (!temp_obj[i]['dateStart']) {
                 continue;
             }
             // set as UTC
             let start_date_utc = new Date(temp_obj[i]['dateStart'] + 'Z');
-            let end_date_utc = null;
-            if (temp_obj[i]['dateEnd'] !== null) {
-                end_date_utc = new Date(temp_obj[i]['dateEnd'] + 'Z');
+            // only draw tasks that exist within this month
+            if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
+                continue;
             }
+            let end_date_utc = temp_obj[i]['dateEnd'] && new Date(temp_obj[i]['dateEnd'] + 'Z');
+            // let end_date_utc = null;
+            // if (temp_obj[i]['dateEnd'] !== null) {
+            //     end_date_utc = new Date(temp_obj[i]['dateEnd'] + 'Z');
+            // }
             // repeat_values possibilities:
             // minutes,n,date|n|never
             // daily,n,date|n|never
@@ -505,12 +510,8 @@ function draw_month(month, year) {
             // monthly,n,date|n|never,two-char-days-of-month-'-'-delimited,bool
             // trigger,n,date|n|never
             let repeat_values = temp_obj[i]['repeat'].split(',');
-            /// handle tasks with no repeat
+            /// handle tasks with no repeat, set to trigger but no recordedTasks
             if (repeat_values.length === 1) {
-                // only draw tasks that exist within this month
-                if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
-                    continue;
-                }
                 // skip if recordedTask already exists with same start/end date combo
                 const rec_task_id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
                 const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
@@ -520,7 +521,7 @@ function draw_month(month, year) {
                 // write task
                 let day_element = document.getElementById('month' + start_date_utc.getDate().toString());
                 let temp_div = document.createElement('div');
-                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + temp_obj[i]['dateEnd'];
+                temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + (end_date_utc !== null ? temp_obj[i]['dateEnd'] : '');
                 temp_div.onclick = () => edit_task_popup(temp_div.id);
                 temp_div.style.borderColor = '#' + temp_obj[i]['color'];
                 temp_div.style.borderStyle = 'dotted';
@@ -631,7 +632,7 @@ function draw_month(month, year) {
                     let month_first_day_start = new Date(first_month_day_start);
                     month_first_day_start.setMonth(month_first_day_start.getMonth() + (skip_amt * ii));
                     const this_month_last_day = getLastDayOfMonth(month_first_day_start).getDate()
-                    // remove dates that aren't in this month
+                    // remove dates that aren't in this month (EX. February doesn't have 29..31 except leap year has 29)
                     for (let iii = 0; iii < chosen_month_days.length; iii++) {
                         if (chosen_month_days[iii] > this_month_last_day) {
                             chosen_month_days.splice(iii, 1);
@@ -691,6 +692,52 @@ function draw_month(month, year) {
                     }
                 }
             }
+            /// handle trigger repeat
+            else if (repeat_values[0] === 'trigger') {
+                let draw_now = false;
+                // handle recordedTasks first
+                let rec_tasks = temp_obj[i]['recordedTasks'];
+                let temp_date_end = new Date();
+                let temp_date_start = new Date();
+                if (rec_tasks.length > 0) {
+                    // find the most recent recordedTask that has been completed
+                    let most_recent_id = false;
+                    for (let ii = 0; ii < rec_tasks.length; ii++) {
+                        if (rec_tasks[ii]['status'] === 'completed' && !most_recent_id) {
+                            most_recent_id = rec_tasks[ii]['id'];
+                        }
+                        if (most_recent_id && rec_tasks[ii]['id'] > most_recent_id) {
+                            most_recent_id = rec_tasks[ii]['id'];
+                        }
+                    }
+                    // determine if too late or not
+                    if (most_recent_id) {
+                        const id_array = most_recent_id.split(',');
+                        let temp_start = new Date(id_array[1] + 'Z');
+                        temp_start.setDate(temp_start.getDate() + skip_amt);
+                        console.log('skip amt: ', skip_amt);
+                        console.log(temp_start);
+                        if (temp_start > temp_date_start) {
+                            temp_date_start = new Date(temp_start);
+                            // handle end date
+                            if (id_array.length > 2 && id_array[2].length > 0) {
+                                let temp_end = new Date(id_array[2] + 'Z');
+                                temp_end.setDate(temp_end.getDate() + skip_amt);
+                                temp_date_end = new Date(temp_end);
+                            }
+                        }
+                    }
+                }
+                // write task
+                let day_element = document.getElementById('month' + temp_date_start.getDate().toString());
+                let temp_div = document.createElement('div');
+                temp_div.id = temp_obj[i]['_id'] + ',' + temp_date_start.toISOString().slice(0, -5) + ',' + temp_date_end.toISOString().slice(0, -5);
+                temp_div.onclick = () => edit_task_popup(temp_div.id);
+                temp_div.style.borderColor = '#' + temp_obj[i]['color'];
+                temp_div.style.borderStyle = 'dotted';
+                temp_div.innerText = temp_obj[i]['title'];
+                day_element.append(temp_div);
+            }
             /// handle weekly repeat
             else if (repeat_values[0] === 'weekly') {
                 if (!is_never) {// set final_date as UTC
@@ -715,12 +762,8 @@ function draw_month(month, year) {
                     for (let iii = 0; iii < chosen_weekdays.length; iii++) {
                         let temp_start_date = new Date(this_sunday);
                         temp_start_date.setDate(temp_start_date.getDate() + WEEK_3_ARRAY.indexOf(chosen_weekdays[iii]));
-                        // console.log(temp_start_date);
                         // skip if past final_date
-                        if (final_date && temp_start_date > final_date) {
-                            // console.log('temp_start_date: ', temp_start_date);
-                            break outerLoop;
-                        }
+                        if (final_date && temp_start_date > final_date) { break outerLoop; }
                         // break out of both loops if task in series is past this month
                         if (temp_start_date > month_last_moment) { break outerLoop; }
                         // skip if task in series is before this month
