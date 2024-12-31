@@ -56,6 +56,22 @@
 .calendar_month_day {
     border: black solid 1px;
     font-size: x-small;
+    min-height: 120px;
+    padding: 2px;
+    width: 100%;
+}
+.calendar_month_day_next_month {
+    background-color: rgb(210, 210, 210);
+    border: black solid 1px;
+    font-size: x-small;
+    min-height: 90px;
+    padding: 2px;
+    width: 100%;
+}
+.calendar_month_day_prev_month {
+    background-color: rgb(240, 240, 240);
+    border: black solid 1px;
+    font-size: x-small;
     min-height: 90px;
     padding: 2px;
     width: 100%;
@@ -195,6 +211,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 5px;
+    justify-content: center;
     padding: 30px;
 }
 #tasks_menu {
