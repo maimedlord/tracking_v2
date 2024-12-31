@@ -704,7 +704,6 @@ function draw_month(month, year) {
             }
             /// handle trigger repeat
             else if (repeat_values[0] === 'trigger') {
-                let draw_now = false;
                 // handle recordedTasks first
                 let rec_tasks = temp_obj[i]['recordedTasks'];
                 let temp_date_end = new Date();
@@ -713,6 +712,7 @@ function draw_month(month, year) {
                 let day_element = document.getElementById(temp_date_start.getFullYear() + '-' + (temp_date_start.getMonth() + 1) + '-' + temp_date_start.getDate().toString());
                 // when viewing months that this does not apply too
                 if (!day_element) { continue; }
+                let too_late = false;
                 if (rec_tasks.length > 0) {
                     // find the most recent recordedTask that has been completed
                     let most_recent_id = '';
@@ -727,6 +727,7 @@ function draw_month(month, year) {
                         let temp_start = new Date(id_array[1] + 'Z');
                         temp_start.setDate(temp_start.getDate() + skip_amt);
                         if (temp_start < bottom_right_day_lol && temp_start > temp_date_start) {
+                            too_late = true;
                             temp_date_start = new Date(temp_start);
                             // handle end date
                             if (id_array.length > 2 && id_array[2].length > 0) {
@@ -738,6 +739,14 @@ function draw_month(month, year) {
                         }
                     }
                 }
+                else {
+                    let out_date = new Date(start_date_utc);
+                    out_date.setDate(out_date.getDate() + parseInt(repeat_values[1]));
+                    if (temp_date_start > out_date) { too_late = true; }
+                    if (!too_late && out_date < bottom_right_day_lol) {
+                        day_element = document.getElementById(out_date.getFullYear() + '-' + (out_date.getMonth() + 1) + '-' + out_date.getDate().toString());
+                    }
+                }
                 // write task
                 let temp_div = document.createElement('div');
                 temp_div.id = temp_obj[i]['_id'] + ',' + temp_date_start.toISOString().slice(0, -5) + ',' + temp_date_end.toISOString().slice(0, -5);
@@ -745,6 +754,10 @@ function draw_month(month, year) {
                 temp_div.style.borderColor = '#' + temp_obj[i]['color'];
                 temp_div.style.borderStyle = 'dotted';
                 temp_div.innerText = temp_obj[i]['title'];
+                if (too_late) {
+                    temp_div.style.backgroundColor = 'red';
+                    temp_div.style.color = 'white';
+                }
                 day_element.append(temp_div);
             }
             /// handle weekly repeat
