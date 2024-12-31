@@ -31,9 +31,9 @@ const WEEK_PRINT_ARRAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'
 const WEEK_3_ARRAY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 // other variables
-let last_sort_by = '';
+let LAST_SORT_BY = '';
 let TASKS_OBJ = false;
-const OFFSET_VALUE = new Date().getTimezoneOffset() * 60 * 1000;
+const LCL_OFFSET = new Date().getTimezoneOffset() * 60 * 1000;
 let VIEWS_OBJ = false;
 const URL_BASE = 'http://127.0.0.1:5000/api';
 
@@ -70,8 +70,8 @@ function confirm_delete_popup(task_id) {
 // RETURN input string if no date string found || strings converted to local time if found
 function convert_date_strings_to_local(input_string, plus_or_minus) {
     if (input_string.includes('T')) {
-        // if plus_or_minus is false remove OFFSET_VALUE, if true then add
-        let OFFSET_AMT = plus_or_minus ? -OFFSET_VALUE : OFFSET_VALUE;
+        // if plus_or_minus is false remove LCL_OFFSET, if true then add
+        let OFFSET_AMT = plus_or_minus ? -LCL_OFFSET : LCL_OFFSET;
         let return_string = input_string.split(',');
         for (let ii = 0; ii < return_string.length; ii++) {
             if (return_string[ii].includes('T')) {
@@ -122,12 +122,12 @@ function edit_task_popup(task_id) {
         let temp_start_date = '';
         if (local_task['dateStart'] !== null) {
             temp_start_date = new Date(local_task['dateStart'] + 'Z');
-            temp_start_date = new Date(temp_start_date - OFFSET_VALUE).toISOString().slice(0,-5);
+            temp_start_date = new Date(temp_start_date - LCL_OFFSET).toISOString().slice(0,-5);
         }
         let temp_end_date = '';
         if (local_task['dateEnd'] !== null) {
             temp_end_date = new Date(local_task['dateEnd'] + 'Z');
-            temp_end_date = new Date(temp_end_date - OFFSET_VALUE).toISOString().slice(0,-5);
+            temp_end_date = new Date(temp_end_date - LCL_OFFSET).toISOString().slice(0,-5);
         }
         // take care of dates in repeat if there
         // true == forward in time
@@ -158,12 +158,12 @@ function edit_task_popup(task_id) {
         // first, check if exists in recordedTasks and populate with the data if so
         // NEED
         // handle UTC to local time conversion
-        const local_start_date = new Date(new Date(id_and_dates[1] + 'Z') - OFFSET_VALUE);
+        const local_start_date = new Date(new Date(id_and_dates[1] + 'Z') - LCL_OFFSET);
         document.getElementById('update_t_datestart').value = local_start_date.toISOString().slice(0,-5);
         // console.log('dateStart', local_start_date);
         // handle potential dateend nulls and then UTC to local time conversion
         if (id_and_dates[2] !== '') {
-            const local_end_date = new Date(new Date(id_and_dates[2] + 'Z') - OFFSET_VALUE);
+            const local_end_date = new Date(new Date(id_and_dates[2] + 'Z') - LCL_OFFSET);
             document.getElementById('update_t_dateend').value = local_end_date.toISOString().slice(0,-5);
         }
         else {
@@ -360,7 +360,7 @@ function getLastDayOfMonth(inputDate) {
     return date;
 }
 
-// RETURNS
+// RETURNS ???
 // ChatGPT
 function getPreviousSunday(inputDate) {
     const date = new Date(inputDate);// Ensure the input is a Date object
@@ -375,8 +375,39 @@ function getPreviousSunday(inputDate) {
 }
 
 // RETURNS ???
+// ChatGPT
+function getWeeksInMonth(date) {
+    if (!(date instanceof Date)) {
+        throw new Error("Input must be a valid Date object");
+    }
+
+    // Get the year and month from the date
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    // Find the first day and the last day of the month
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Get the day of the week for the first and last days of the month
+    const startDayOfWeek = firstDayOfMonth.getDay(); // Sunday is 0, Saturday is 6
+    const endDayOfWeek = lastDayOfMonth.getDay();
+
+    // Calculate the total days in the month
+    const daysInMonth = lastDayOfMonth.getDate();
+
+    // Calculate the number of weeks
+    // Add the days from the start of the first week and the end of the last week
+    const totalDaysCovered = daysInMonth + startDayOfWeek + (6 - endDayOfWeek);
+
+    // Divide by 7 to get the number of weeks
+    const weeks = Math.ceil(totalDaysCovered / 7);
+
+    return weeks;
+}
+
+// RETURNS ???
 function set_cal_month_next(month, year) {
-    console.log(month, year);
     if (month === 11) {
         cal_now_month = 0;
         cal_now_year = ++year;
@@ -404,57 +435,52 @@ function set_cal_month_prev(month, year) {
 function draw_month(month, year) {
     try {
         ///// draw the calendar for this month
-        // number of days in month
-        let days_in_month = get_days_in_month(month, year);
-        // First moment of the month
-        const month_first_moment = new Date(year, month, 1, 0, 0, 0, 0);
+        const curr_m = new Date(year, month);
+        const curr_m_firstMoment = new Date(year, month, 1, 0, 0, 0, 0);
         // Last moment of the month: Day 0 of the next month gives the last day of this month
-        const month_last_moment = new Date(year, month + 1, 0, 23, 59, 59, 999);
-        let started_day_nums = false; // used to determine if month days have started assignment
-        let written_day_num = 1; // first day of the month for every month :D
+        const curr_m_lastMoment = new Date(year, month + 1, 0, 23, 59, 59, 999);
+        let this_day = new Date(curr_m_firstMoment);
+        this_day.setDate(this_day.getDate() - get_weekday_of_month(month, year));
+        const top_left_day_lol = new Date(this_day);
+        const bottom_right_day_lol = new Date(this_day);
+        bottom_right_day_lol.setDate(bottom_right_day_lol.getDate() + (getWeeksInMonth(curr_m) * 7) - 1);
+        bottom_right_day_lol.setHours(23, 59, 59, 999);// set to end of the day
+
         // write month name
-        id_calendar_title.innerText = new Date(year, month).toLocaleString('default', { month: 'long' }) +
-        ': ' + year;
+        id_calendar_title.innerText = new Date(year, month).toLocaleString('default', { month: 'long' }) + ': ' + year;
         id_calendar_view.innerHTML = ''; // wipe before re-drawing calendar
-        // every month except for some rare February's have five weeks
-        for (let row = 0; row < 6; row++) {
+        // draw a week per at a time
+        for (let row = 0; row < getWeeksInMonth(curr_m_firstMoment); row++) {
             let temp_row_div = document.createElement('div');
             temp_row_div.className = 'calendar_month_week';
             temp_row_div.id = 'calendar_month_week' + row.toString();
             // each day of the week
             for (let col = 0; col < 7; col++) {
-                // determine which day of first week will start day-of-month numbering
-                if (!started_day_nums && col === get_weekday_of_month(month, year)) {
-                    started_day_nums = true;
-                }
-                //
                 let temp_day_div = document.createElement('div');
-                temp_day_div.className = 'calendar_month_day';
+                temp_day_div.className += 'calendar_month_day';
                 temp_day_div.dataset.col = col.toString();
                 temp_day_div.dataset.row = row.toString();
-                // add day of the week text
                 temp_day_div.textContent += WEEK_PRINT_ARRAY[col] + ' ';
-                // add day-of-the-month number
-                if (started_day_nums && written_day_num <= days_in_month) {
-                    temp_day_div.id = 'month' + written_day_num.toString();
-                    temp_day_div.textContent += written_day_num.toString();
-                    written_day_num++;
+                // handle previous month
+                if (this_day < curr_m_firstMoment) {
+                    temp_day_div.className += ' calendar_month_day_prev_month';
                 }
+                // handle next month
+                else if (this_day > curr_m_lastMoment) {
+                    temp_day_div.className += ' calendar_month_day_next_month';
+                }
+                temp_day_div.id = this_day.getFullYear() + '-' + (this_day.getMonth() + 1) + '-' + this_day.getDate().toString();
+                temp_day_div.textContent += this_day.getDate().toString();
+                this_day.setDate(this_day.getDate() + 1);// moves this_day to the next date
                 temp_row_div.append(temp_day_div);
             }
             id_calendar_view.append(temp_row_div);
         }
         ///// draw tasks on the calendar
         /// skip if no tasks
-        if (!TASKS_OBJ) {
-            console.log('no tasks to draw');
-            return;
-        }
+        if (!TASKS_OBJ) { return; }
         let temp_obj = TASKS_OBJ['data'];
-        if (!temp_obj || temp_obj.length < 1) {
-            console.log('no tasks to draw');
-            return;
-        }
+        if (!temp_obj || temp_obj.length < 1) { return; }
         //// process each task
         for (let i = 0; i < temp_obj.length; i++) {
             // first, draw any recordedTasks (they don't rely on dateStart)
@@ -463,21 +489,23 @@ function draw_month(month, year) {
                 for (let ii = 0; ii < rec_tasks.length; ii++) {
                     // id: str:task_ObjectId,str:dateStart,str:dateEnd
                     let id_and_dates = rec_tasks[ii]['id'].split(',');
-                    // handle dates
+                    // handle start date
                     let temp_start_date = '';
+                    let start_month = '';
+                    let start_year = '';
                     if (id_and_dates[1] !== "") {
                         temp_start_date = new Date(id_and_dates[1] + 'Z');
-                        // skip this recordedTask if start date is not in this month
-                        if (temp_start_date < month_first_moment || temp_start_date > month_last_moment) {
-                            continue;
-                        }
+                        start_month = temp_start_date.getMonth() + 1;
+                        start_year = temp_start_date.getFullYear();
                     }
+                    // skip this recordedTask if start date is not on the visible calendar
+                    if (temp_start_date < top_left_day_lol || temp_start_date > bottom_right_day_lol) { continue; }
+                    // handle end date
                     let temp_end_date = '';
                     if (id_and_dates[2] !== "") {
                         temp_end_date = new Date(id_and_dates[1] + 'Z');
                     }
-                    let month_day = temp_start_date.getDate();// should be local time?
-                    let day_element = document.getElementById('month' + month_day.toString());
+                    let day_element = document.getElementById(start_year + '-' + start_month + '-' + temp_start_date.getDate());
                     let temp_div = document.createElement('div');
                     temp_div.id = rec_tasks[ii]['id'];
                     temp_div.onclick = () => edit_task_popup(temp_div.id);
@@ -489,20 +517,10 @@ function draw_month(month, year) {
             }
             // second, draw single, repetitive tasks that are not already recordedTasks
             // skip this task if it does not have a dateStart
-            if (!temp_obj[i]['dateStart']) {
-                continue;
-            }
+            if (!temp_obj[i]['dateStart']) { continue; }
             // set as UTC
             let start_date_utc = new Date(temp_obj[i]['dateStart'] + 'Z');
-            // only draw tasks that exist within this month
-            if (start_date_utc < month_first_moment || start_date_utc > month_last_moment) {
-                continue;
-            }
             let end_date_utc = temp_obj[i]['dateEnd'] && new Date(temp_obj[i]['dateEnd'] + 'Z');
-            // let end_date_utc = null;
-            // if (temp_obj[i]['dateEnd'] !== null) {
-            //     end_date_utc = new Date(temp_obj[i]['dateEnd'] + 'Z');
-            // }
             // repeat_values possibilities:
             // minutes,n,date|n|never
             // daily,n,date|n|never
@@ -519,7 +537,7 @@ function draw_month(month, year) {
                     continue;
                 }
                 // write task
-                let day_element = document.getElementById('month' + start_date_utc.getDate().toString());
+                let day_element = document.getElementById(start_date_utc.getFullYear() + '-' + (start_date_utc.getMonth() + 1) + '-' + start_date_utc.getDate().toString());
                 let temp_div = document.createElement('div');
                 temp_div.id = temp_obj[i]['_id'] + ',' + temp_obj[i]['dateStart'] + ',' + (end_date_utc !== null ? temp_obj[i]['dateEnd'] : '');
                 temp_div.onclick = () => edit_task_popup(temp_div.id);
@@ -549,19 +567,14 @@ function draw_month(month, year) {
                     else { final_date = new Date(repeat_values[2] + 'Z'); }
                 }
                 // skip if task end date is before this month
-                if (final_date && final_date < month_first_moment) {
-                    continue;
-                }
+                if (final_date && final_date < top_left_day_lol) { continue; }
                 // process n number of tasks in the series and print if in this month
                 for (let ii = 0; is_never || final_date || ii < occurrences; ii++) {
                     // prep dates
                     let temp_start_date = new Date(start_date_utc);
                     temp_start_date.setDate(temp_start_date.getDate() + (skip_amt * ii));
                     // skip if past final_date
-                    if (final_date && temp_start_date > final_date) {
-                        // console.log('temp_start_date: ', temp_start_date);
-                        break;
-                    }
+                    if (final_date && temp_start_date > final_date) { break; }
                     let temp_end_date = '';
                     if (end_date_utc) {
                         temp_end_date = new Date(end_date_utc);
@@ -576,12 +589,10 @@ function draw_month(month, year) {
                             temp_end_date.setHours(temp_end_date.getHours() + 1);
                         }
                     }
-                    // // convert temp_end_date to string as rec_task_id assignment requires it
-                    // if (temp_end_date) { temp_end_date = temp_end_date.toISOString().slice(0, -5); }
                     // break out of loop if task in series is past this month
-                    if (temp_start_date > month_last_moment) { break; }
+                    if (temp_start_date > bottom_right_day_lol) { break; }
                     // skip if task in series is before this month
-                    if (temp_start_date < month_first_moment) { continue; }
+                    if (temp_start_date < top_left_day_lol) { continue; }
                     // convert temp_end_date to string as rec_task_id assignment requires it
                     if (temp_end_date) { temp_end_date = temp_end_date.toISOString().slice(0, -5); }
                     // skip drawing if in recordedTasks
@@ -592,21 +603,20 @@ function draw_month(month, year) {
                     // time to draw
                     let month_day = temp_start_date.getDate();// should be local time?
                     // console.log(month_day);
-                    let day_element = document.getElementById('month' + month_day.toString());
+                    let day_element = document.getElementById(temp_start_date.getFullYear() + '-' + (temp_start_date.getMonth() + 1) + '-' + month_day.toString());
                     let temp_div = document.createElement('div');
                     temp_div.id = rec_task_id;
-                    // console.log(temp_div.id);
                     temp_div.onclick = () => edit_task_popup(temp_div.id);
                     temp_div.style.borderColor = '#' + temp_obj[i]['color'];
                     temp_div.style.borderStyle = 'dotted';
                     temp_div.innerText = temp_obj[i]['title'];
-                    // console.log(temp_div);
                     day_element.append(temp_div);
                 }
             }
-            else if (repeat_values[0] === 'minutes') {}
             // handle monthly repeat
             else if (repeat_values[0] === 'monthly') {
+                // skip if task start is greater than last day of visible month
+                if (start_date_utc > bottom_right_day_lol) { continue; }
                 if (!is_never) {// set final_date as UTC
                     if (is_n) {// final_date calculated from start_date by n
                         occurrences = parseInt(repeat_values[2]);
@@ -619,9 +629,9 @@ function draw_month(month, year) {
                 // first day of the month from dateStart
                 const first_month_day_start = getFirstDayOfMonth(start_date_utc);
                 // skip if task end date is before this month
-                if (final_date && final_date < first_month_day_start) { continue; }
+                if (final_date && final_date < top_left_day_lol) { continue; }
                 // process n number of tasks in the series and print if in this month
-                outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {
+                outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {;
                     const chosen_month_days = repeat_values[3].split('-');
                     let month_first_day_end = '';
                     if (end_date_utc) {
@@ -658,9 +668,9 @@ function draw_month(month, year) {
                         // skip if past final_date
                         if (final_date && temp_start_date > final_date) { break outerLoop; }
                         // break out of both loops if task in series is past this month
-                        if (temp_start_date > month_last_moment) { break outerLoop; }
+                        if (temp_start_date > bottom_right_day_lol) { break outerLoop; }
                         // skip if task in series is before this month
-                        if (temp_start_date < month_first_moment) { continue; }
+                        if (temp_start_date < top_left_day_lol) { continue; }
                         // handle daylight savings time
                         const dst_end = getDSTEnd(temp_start_date.getFullYear());// LOCALIZED DATE
                         const dst_start = getDSTStart(temp_start_date.getFullYear());// LOCALIZED DATE
@@ -681,7 +691,7 @@ function draw_month(month, year) {
                         if (found_rTask > -1) { continue; }
                         // time to draw
                         let month_day = temp_start_date.getDate();// should be local time?
-                        let day_element = document.getElementById('month' + month_day.toString());
+                        let day_element = document.getElementById(temp_start_date.getFullYear() + '-' + (temp_start_date.getMonth() + 1) + '-' + month_day.toString());
                         let temp_div = document.createElement('div');
                         temp_div.id = rec_task_id;
                         temp_div.onclick = () => edit_task_popup(temp_div.id);
@@ -698,15 +708,16 @@ function draw_month(month, year) {
                 // handle recordedTasks first
                 let rec_tasks = temp_obj[i]['recordedTasks'];
                 let temp_date_end = new Date();
-                let temp_date_start = new Date();
+                let temp_date_start = new Date()
+                // set day_element id to now and re-assign it if complete recordedTasks found
+                let day_element = document.getElementById(temp_date_start.getFullYear() + '-' + (temp_date_start.getMonth() + 1) + '-' + temp_date_start.getDate().toString());
+                // when viewing months that this does not apply too
+                if (!day_element) { continue; }
                 if (rec_tasks.length > 0) {
                     // find the most recent recordedTask that has been completed
-                    let most_recent_id = false;
+                    let most_recent_id = '';
                     for (let ii = 0; ii < rec_tasks.length; ii++) {
-                        if (rec_tasks[ii]['status'] === 'completed' && !most_recent_id) {
-                            most_recent_id = rec_tasks[ii]['id'];
-                        }
-                        if (most_recent_id && rec_tasks[ii]['id'] > most_recent_id) {
+                        if (rec_tasks[ii]['status'] === 'completed' && rec_tasks[ii]['id'] > most_recent_id) {
                             most_recent_id = rec_tasks[ii]['id'];
                         }
                     }
@@ -715,9 +726,7 @@ function draw_month(month, year) {
                         const id_array = most_recent_id.split(',');
                         let temp_start = new Date(id_array[1] + 'Z');
                         temp_start.setDate(temp_start.getDate() + skip_amt);
-                        console.log('skip amt: ', skip_amt);
-                        console.log(temp_start);
-                        if (temp_start > temp_date_start) {
+                        if (temp_start < bottom_right_day_lol && temp_start > temp_date_start) {
                             temp_date_start = new Date(temp_start);
                             // handle end date
                             if (id_array.length > 2 && id_array[2].length > 0) {
@@ -725,11 +734,11 @@ function draw_month(month, year) {
                                 temp_end.setDate(temp_end.getDate() + skip_amt);
                                 temp_date_end = new Date(temp_end);
                             }
+                            day_element = document.getElementById(temp_date_start.getFullYear() + '-' + (temp_date_start.getMonth() + 1) + '-' + temp_date_start.getDate().toString());
                         }
                     }
                 }
                 // write task
-                let day_element = document.getElementById('month' + temp_date_start.getDate().toString());
                 let temp_div = document.createElement('div');
                 temp_div.id = temp_obj[i]['_id'] + ',' + temp_date_start.toISOString().slice(0, -5) + ',' + temp_date_end.toISOString().slice(0, -5);
                 temp_div.onclick = () => edit_task_popup(temp_div.id);
@@ -752,7 +761,7 @@ function draw_month(month, year) {
                 // find the Sunday of the week from dateStart
                 const first_sunday = new Date(getPreviousSunday(start_date_utc));
                 // skip if task end date is before this month
-                if (final_date && final_date < month_first_moment) { continue; }
+                if (final_date && final_date < top_left_day_lol) { continue; }
                 // process n number of tasks in the series and print if in this month week
                 outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {
                     const chosen_weekdays = repeat_values[3].split('-');
@@ -765,9 +774,9 @@ function draw_month(month, year) {
                         // skip if past final_date
                         if (final_date && temp_start_date > final_date) { break outerLoop; }
                         // break out of both loops if task in series is past this month
-                        if (temp_start_date > month_last_moment) { break outerLoop; }
+                        if (temp_start_date > bottom_right_day_lol) { break outerLoop; }
                         // skip if task in series is before this month
-                        if (temp_start_date < month_first_moment) { continue; }
+                        if (temp_start_date < top_left_day_lol) { continue; }
                         let temp_end_date = '';
                         if (end_date_utc) {
                             temp_end_date = new Date(end_date_utc);
@@ -791,7 +800,7 @@ function draw_month(month, year) {
                         if (found_rTask > -1) { continue; }
                         // time to draw
                         let month_day = temp_start_date.getDate();// should be local time?
-                        let day_element = document.getElementById('month' + month_day.toString());
+                        let day_element = document.getElementById(temp_start_date.getFullYear() + '-' + (temp_start_date.getMonth() + 1) + '-' + month_day.toString());
                         let temp_div = document.createElement('div');
                         temp_div.id = rec_task_id;
                         temp_div.onclick = () => edit_task_popup(temp_div.id);
@@ -1187,10 +1196,10 @@ id_button_task_update_submit.onclick = async function () {
 id_select_sort_by.onclick = function () {
     try {
         // Exit if no sort selected or no change made to sort
-        if (!id_select_sort_by.value || id_select_sort_by.value === last_sort_by) {
+        if (!id_select_sort_by.value || id_select_sort_by.value === LAST_SORT_BY) {
             return;
         }
-        last_sort_by = id_select_sort_by.value;
+        LAST_SORT_BY = id_select_sort_by.value;
         // Sort tasks
         sort_tasks();
         // store view change
