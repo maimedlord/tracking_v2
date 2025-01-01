@@ -11,6 +11,8 @@ let id_button_task_create_submit = document.getElementById('button_task_create_s
 let id_button_task_update_submit = document.getElementById('button_task_update_submit');
 let id_calendar_view = document.getElementById('calendar_view');
 let id_calendar_title = document.getElementById('calendar_title');
+let id_choose_month_go_input = document.getElementById('choose_month_go_input');
+let id_choose_month_input = document.getElementById('choose_month_input');
 let id_t_update_error_message = document.getElementById('t_update_error_message');
 let id_task_choose_one = document.getElementById('task_choose_one');
 let id_task_choose_series = document.getElementById('task_choose_series');
@@ -31,6 +33,7 @@ const WEEK_PRINT_ARRAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'
 const WEEK_3_ARRAY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 // other variables
+let LAST_MONTH_INPUT = '';
 let LAST_SORT_BY = '';
 let TASKS_OBJ = false;
 const LCL_OFFSET = new Date().getTimezoneOffset() * 60 * 1000;
@@ -53,12 +56,9 @@ function confirm_delete_popup(task_id) {
         id_button_delete_yes.onclick=function () {
             delete_task(task_id)
                 .then(() => {
-                    console.log('button delete yes was clicked');
                     id_task_confirm_delete_container.style.display = 'none';
                     get_tasks()
-                        .then(() => {
-                            console.log('get_tasks activated');
-                        })
+                        // .then(() => {})
                 })
         }
     } catch (error) {
@@ -95,7 +95,6 @@ async function delete_task(task_id) {
         }
         // Parse the JSON data from the response
         const data = await response.json();
-        console.log(response);
         get_tasks()
             .then(() => {
                 draw_month(11, 2024);// NEED
@@ -104,6 +103,30 @@ async function delete_task(task_id) {
     } catch (error) {
         // Handle errors
         console.error("There was an error with the fetch request: delete_task(): ", error);
+    }
+}
+
+function draw_month_from_input() {
+    try {
+        // Exit if no choice selected
+        if (!id_choose_month_input.value) { return; }
+        // LAST_MONTH_INPUT = id_choose_month_input.value;
+        const choice_array = id_choose_month_input.value.split('-');
+        draw_month(parseInt(choice_array[1]) - 1, parseInt(choice_array[0]));
+        // store view change
+        id_calendar_view.dataset.view_config = (parseInt(choice_array[1]) - 1).toString() + ',' + parseInt(choice_array[0]).toString();
+        const TASK_KEY = 'tasks';
+        const SORT_KEY = 'choose_month_input';
+        const TASK_OBJ = {
+            [TASK_KEY]: {
+                [SORT_KEY]: LAST_MONTH_INPUT
+            }
+        };
+        view_update(TASK_OBJ).catch(error =>
+            console.error("Error in view_update", error)
+        );
+    } catch (error) {
+        console.error("There was an error in draw_month_from_input", error);
     }
 }
 
@@ -581,8 +604,8 @@ function draw_month(month, year) {
                         temp_end_date.setDate(temp_end_date.getDate() + (skip_amt * ii));
                     }
                     // handle daylight savings time
-                    const dst_end = getDSTEnd(start_date_utc.getFullYear());// LOCALIZED DATE
-                    const dst_start = getDSTStart(start_date_utc.getFullYear());// LOCALIZED DATE
+                    const dst_end = getDSTEnd(temp_start_date.getFullYear());// LOCALIZED DATE
+                    const dst_start = getDSTStart(temp_start_date.getFullYear());// LOCALIZED DATE
                     if (temp_start_date > dst_start && temp_start_date < dst_end) {
                         temp_start_date.setHours(temp_start_date.getHours() + 1);// add one hour
                         if (temp_end_date) {
@@ -596,13 +619,11 @@ function draw_month(month, year) {
                     // convert temp_end_date to string as rec_task_id assignment requires it
                     if (temp_end_date) { temp_end_date = temp_end_date.toISOString().slice(0, -5); }
                     // skip drawing if in recordedTasks
-                    const rec_task_id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5)
-                        + ',' + temp_end_date;
+                    const rec_task_id = temp_obj[i]['_id'] + ',' + temp_start_date.toISOString().slice(0, -5) + ',' + temp_end_date;
                     const found_rTask = get_recordedTask(rec_task_id, temp_obj[i]['recordedTasks']);
                     if (found_rTask > -1) { continue; }
-                    // time to draw
                     let month_day = temp_start_date.getDate();// should be local time?
-                    // console.log(month_day);
+                    // time to draw
                     let day_element = document.getElementById(temp_start_date.getFullYear() + '-' + (temp_start_date.getMonth() + 1) + '-' + month_day.toString());
                     let temp_div = document.createElement('div');
                     temp_div.id = rec_task_id;
@@ -631,7 +652,7 @@ function draw_month(month, year) {
                 // skip if task end date is before this month
                 if (final_date && final_date < top_left_day_lol) { continue; }
                 // process n number of tasks in the series and print if in this month
-                outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {;
+                outerLoop: for (let ii = 0; is_never || final_date || ii < occurrences; ii++) {;
                     const chosen_month_days = repeat_values[3].split('-');
                     let month_first_day_end = '';
                     if (end_date_utc) {
@@ -643,11 +664,11 @@ function draw_month(month, year) {
                     month_first_day_start.setMonth(month_first_day_start.getMonth() + (skip_amt * ii));
                     const this_month_last_day = getLastDayOfMonth(month_first_day_start).getDate()
                     // remove dates that aren't in this month (EX. February doesn't have 29..31 except leap year has 29)
-                    for (let iii = 0; iii < chosen_month_days.length; iii++) {
-                        if (chosen_month_days[iii] > this_month_last_day) {
-                            chosen_month_days.splice(iii, 1);
-                        }
-                    }
+                    // for (let iii = 0; iii < chosen_month_days.length; iii++) {
+                    //     if (chosen_month_days[iii] > this_month_last_day) {
+                    //         chosen_month_days.splice(iii, 1);
+                    //     }
+                    // }
                     // handle logic where the last day of the month should have a task regardless if that last day
                     // is 28..31
                     if  (repeat_values[4] === '1') {
@@ -674,11 +695,10 @@ function draw_month(month, year) {
                         // handle daylight savings time
                         const dst_end = getDSTEnd(temp_start_date.getFullYear());// LOCALIZED DATE
                         const dst_start = getDSTStart(temp_start_date.getFullYear());// LOCALIZED DATE
-                        // NO IDEA WHY THIS IS DIFFERENT THAN THE OTHER REPEAT TYPES...
-                        if (temp_start_date < dst_start || temp_start_date > dst_end) {
-                            temp_start_date.setHours(temp_start_date.getHours() - 1);// ???
+                        if (temp_start_date > dst_start && temp_start_date < dst_end) {
+                            temp_start_date.setHours(temp_start_date.getHours() + 1);// add one hour
                             if (temp_end_date) {
-                                temp_end_date.setHours(temp_end_date.getHours() - 1);
+                                temp_end_date.setHours(temp_end_date.getHours() + 1);
                             }
                         }
                         // convert temp_end_date to string as rec_task_id assignment requires it
@@ -707,7 +727,9 @@ function draw_month(month, year) {
                 // handle recordedTasks first
                 let rec_tasks = temp_obj[i]['recordedTasks'];
                 let temp_date_end = new Date();
-                let temp_date_start = new Date()
+                temp_date_end.setSeconds(0);
+                let temp_date_start = new Date();
+                temp_date_start.setSeconds(0);
                 // set day_element id to now and re-assign it if complete recordedTasks found
                 let day_element = document.getElementById(temp_date_start.getFullYear() + '-' + (temp_date_start.getMonth() + 1) + '-' + temp_date_start.getDate().toString());
                 // when viewing months that this does not apply too
@@ -721,13 +743,16 @@ function draw_month(month, year) {
                             most_recent_id = rec_tasks[ii]['id'];
                         }
                     }
-                    // determine if too late or not
+                    // determine if can be drawn AND if too late or not
                     if (most_recent_id) {
                         const id_array = most_recent_id.split(',');
                         let temp_start = new Date(id_array[1] + 'Z');
                         temp_start.setDate(temp_start.getDate() + skip_amt);
-                        if (temp_start < bottom_right_day_lol && temp_start > temp_date_start) {
-                            too_late = true;
+                        // skip drawing task due if that day is not in calendar view
+                        if (temp_start > bottom_right_day_lol) { continue; }
+                        // is too late or push task to future day within calendar view
+                        if (temp_start < temp_date_start) { too_late = true; }
+                        else {
                             temp_date_start = new Date(temp_start);
                             // handle end date
                             if (id_array.length > 2 && id_array[2].length > 0) {
@@ -776,7 +801,7 @@ function draw_month(month, year) {
                 // skip if task end date is before this month
                 if (final_date && final_date < top_left_day_lol) { continue; }
                 // process n number of tasks in the series and print if in this month week
-                outerLoop: for (let ii = 0; is_never || ii < occurrences; ii++) {
+                outerLoop: for (let ii = 0; is_never || final_date || ii < occurrences; ii++) {
                     const chosen_weekdays = repeat_values[3].split('-');
                     let this_sunday = new Date(first_sunday);
                     this_sunday.setDate(this_sunday.getDate() + (skip_amt * ii * 7));
@@ -793,11 +818,11 @@ function draw_month(month, year) {
                         let temp_end_date = '';
                         if (end_date_utc) {
                             temp_end_date = new Date(end_date_utc);
-                            temp_end_date.setDate(temp_end_date.getDate() + (skip_amt * ii));
+                            temp_end_date.setDate(temp_end_date.getDate() + (skip_amt * ii * 7) + WEEK_3_ARRAY.indexOf(chosen_weekdays[iii]));
                         }
                         // handle daylight savings time
-                        const dst_end = getDSTEnd(start_date_utc.getFullYear());// LOCALIZED DATE
-                        const dst_start = getDSTStart(start_date_utc.getFullYear());// LOCALIZED DATE
+                        const dst_end = getDSTEnd(temp_start_date.getFullYear());// LOCALIZED DATE
+                        const dst_start = getDSTStart(temp_start_date.getFullYear());// LOCALIZED DATE
                         if (temp_start_date > dst_start && temp_start_date < dst_end) {
                             temp_start_date.setHours(temp_start_date.getHours() + 1);// add one hour
                             if (temp_end_date) {
@@ -864,7 +889,7 @@ function get_weekday_of_month(month, year) {
     return firstDay.getDay();
 }
 
-/// onclicks:
+/// addEventListener and onclick:
 id_button_create.onclick=function () {
     try {
         close_popups();
@@ -1115,6 +1140,7 @@ id_button_task_create_submit.onclick=async function () {
         // id_form_intensity.value = '';
         id_form_location.value = '';
         id_form_priority.value = '';
+        id_form_repeat.value = '';
         // id_form_status.value = '';
         id_form_tags.value = '';
         id_form_title.value = '';
@@ -1131,7 +1157,7 @@ id_button_task_create_submit.onclick=async function () {
     }
 }
 
-id_button_task_update_submit.onclick = async function () {
+id_button_task_update_submit.onclick=async function () {
     try {
         let id_form_id = document.getElementById('update_task_id');
         let id_form_color = document.getElementById('update_task_color');
@@ -1206,14 +1232,28 @@ id_button_task_update_submit.onclick = async function () {
     }
 }
 
-id_select_sort_by.onclick = function () {
+id_choose_month_go_input.onclick=function () {
+    try {
+        draw_month_from_input();
+    } catch (error) {
+        console.error("There was an error in id_choose_month_go_input.onclick", error);
+    }
+}
+
+id_choose_month_input.addEventListener('change', () => {
+    try {
+        draw_month_from_input();
+    } catch (error) {
+        console.error("There was an error in id_choose_month_input.addEventListener: change:", error);
+    }
+});
+
+id_select_sort_by.addEventListener('change', () => {
     try {
         // Exit if no sort selected or no change made to sort
-        if (!id_select_sort_by.value || id_select_sort_by.value === LAST_SORT_BY) {
-            return;
-        }
+        if (!id_select_sort_by.value || id_select_sort_by.value === LAST_SORT_BY) { return; }
         LAST_SORT_BY = id_select_sort_by.value;
-        // Sort tasks
+        // sort tasks
         sort_tasks();
         // store view change
         const TASK_KEY = 'tasks';
@@ -1229,7 +1269,7 @@ id_select_sort_by.onclick = function () {
     } catch (error) {
         console.error("There was an error in id_select_sort_by.onclick:", error);
     }
-};
+});
 
 id_task_choose_one.onclick = function () {
     id_task_edit_series.style.display = 'none';
