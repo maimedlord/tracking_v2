@@ -35,10 +35,9 @@
             <i>comma delimited six-char reminders: nnnnvv: EX 0005hr, 0035mn, 0001wk, 0003mt</i><br>
             <input id="create_task_reminder" name="create_task_reminder" type="text"><br>
             <label for="create_task_repeat">repeat:</label><br>
-            <i>minutes,n,date|n|never</i><br>
             <i>daily,n,date|n|never</i><br>
             <i>weekly,n,date|n|never,thee-char-days-of-week-'-'-delimited</i><br>
-            <i>monthly,n,date|n|never,two-char-days-of-month-'-'-delimited,bool</i><br>
+            <i>monthly,n,date|n|never,days-of-month-'-'-delimited,bool</i><br>
             <i>trigger,n,date|n|never</i><br>
             <input id="create_task_repeat" name="create_task_repeat" type="text"><br>
             <label for="create_task_guests">guests:</label><br>
@@ -140,10 +139,9 @@
                 <i>comma delimited six-char reminders: nnnnvv: EX 0005hr, 0035mn, 0001wk, 0003mt</i><br>
                 <input id="update_task_reminder" name="update_task_reminder" type="text"><br>
                 <label for="update_task_repeat">repeat:</label><br>
-                <i>minutes,n,date|n|never</i><br>
                 <i>daily,n,date|n|never</i><br>
                 <i>weekly,n,date|n|never,thee-char-days-of-week-'-'-delimited</i><br>
-                <i>monthly,n,date|n|never,two-char-days-of-month-'-'-delimited,bool</i><br>
+                <i>monthly,n,date|n|never,days-of-month-'-'-delimited,bool</i><br>
                 <i>trigger,n,date|n|never</i><br>
                 <input id="update_task_repeat" name="update_task_repeat" type="text"><br>
                 <label for="update_task_location">location:</label><br>
@@ -194,7 +192,16 @@
         <div id="calendar_menu">
             <div class="button" id="button_month_next">next month</div>
             <div class="button" id="button_month_prev">previous month</div>
+            <div> - </div>
             <div class="button" id="button_month_now">current month</div>
+            <div> - </div>
+            <div id="choose_month">
+                go to:
+                <label for="choose_month_input">
+                    <input id="choose_month_input" name="choose_month_input" type="month" title="choose_month_input">
+                </label>
+                <span id="choose_month_go_input">go</span>
+            </div>
         </div>
         <div id="calendar_title"></div>
         <div id="calendar_view" data-view_config=""></div>
