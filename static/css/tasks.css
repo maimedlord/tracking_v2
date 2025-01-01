@@ -92,6 +92,9 @@
     margin: auto;
     width: 95%;
 }
+#choose_month_go_input {
+    text-decoration: underline;
+}
 .close_confirm_container {
     align-items: center;
     display: flex;
@@ -218,8 +221,8 @@
     align-items: center;
     display: flex;
     flex-direction: row-reverse;
-    gap: 20px;
     justify-content: center;
+    margin: 10px;
 }
 #task_confirm_delete_container {
     border: black 1px solid;
