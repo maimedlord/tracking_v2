@@ -1,0 +1,201 @@
+.button {
+    background-color: gainsboro;
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    text-align: center;
+    width: 90px;
+}
+.button:active {
+    box-shadow: dimgray -2px -2px;
+}
+.button_create {
+
+}
+.button_delete {
+    background-color: red;
+    color: white;
+    height: 20px;
+    margin: 4px 4px 0px 0px;
+}
+.button_edit {
+    margin: 4px 4px 0px 0px;
+}
+#button_delete_no {
+    background-color: red;
+    color: white;
+    width: 40px;
+}
+#button_delete_yes {
+    background-color: green;
+    color: white;
+    width: 40px;
+}
+.button_close_x {
+    border: black 1px solid;
+    box-shadow: black 2px 2px;
+    padding: 4px;
+    width: 15px ;
+}
+#clear_find_obs_by_text {
+    font-style: italic;
+    display: inline;
+}
+.close_confirm_container {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    padding-right: 5px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+.input_field_text {
+    width: 95%;
+}
+.obs_container {
+    border: 2px solid;
+    display: flex;
+    flex-direction: column;
+    font-size: small;
+    max-width: 500px;
+}
+#obs_confirm_delete_container {
+    border: black 1px solid;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 400px;
+}
+#obs_create_container {
+    border: black 1px solid;
+    cursor: grab;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 1000;
+    width: 60%;
+}
+#obs_create_error_message {
+    align-items: center;
+    background-color: red;
+    color: white;
+    display: none;
+    flex-direction: row;
+    font-weight: bold;
+    justify-content: center;
+    padding: 3px;
+    text-align: center;
+    width: 100%;
+}
+#observe_obs_container {
+    border: black 1px solid;
+    cursor: grab;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 600;
+    width: 60%;
+}
+#observe_obs_title {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    font-weight: bold;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+.observed_container {
+    border: 2px solid;
+    margin: 2px;
+    /*width: 100%;*/
+}
+.observed_list {
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+}
+#obss_container {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+}
+#obs_menu {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    justify-content: center;
+    margin: 10px;
+    width: 100%;
+}
+.observable_menu {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 10px;
+}
+#obs_update_error_message {
+    display: none;
+}
+.recorded_obs_show {
+    align-items: center;
+    border-top: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+#update_obs_container {
+    border: black 1px solid;
+    cursor: grab;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 600;
+    width: 60%;
+}
+#update_rec_obs_container {
+    border: black 1px solid;
+    cursor: grab;
+    display: none;
+    flex-direction: column;
+    position: fixed;         /* Locks the div in place, even when scrolling */
+    top: 50%;                  /* Aligns the div at the top of the viewport */
+    left: 50%;               /* Centers the div horizontally */
+    transform: translate(-50%, -50%); /* Offsets by 50% of its width for perfect centering */
+    background-color: #f0f0f0;
+    box-shadow: black 2px 2px;
+    padding: 5px;
+    z-index: 600;
+    width: 60%;
+}
