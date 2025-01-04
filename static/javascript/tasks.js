@@ -108,18 +108,17 @@ async function delete_task(task_id) {
 
 function draw_month_from_input() {
     try {
-        // Exit if no choice selected
-        if (!id_choose_month_input.value) { return; }
+        // Exit if no choice selected or if no delimiter found
+        if (!id_choose_month_input.value || !id_choose_month_input.value.includes('-')) { return; }
         // LAST_MONTH_INPUT = id_choose_month_input.value;
         const choice_array = id_choose_month_input.value.split('-');
         draw_month(parseInt(choice_array[1]) - 1, parseInt(choice_array[0]));
         // store view change
         id_calendar_view.dataset.view_config = (parseInt(choice_array[1]) - 1).toString() + ',' + parseInt(choice_array[0]).toString();
-        const TASK_KEY = 'tasks';
-        const SORT_KEY = 'choose_month_input';
         const TASK_OBJ = {
-            [TASK_KEY]: {
-                [SORT_KEY]: LAST_MONTH_INPUT
+            'tasks': {
+                'calendar_view': id_calendar_view.dataset.view_config,
+                'choose_month_input': id_choose_month_input.value
             }
         };
         view_update(TASK_OBJ).catch(error =>
@@ -1126,8 +1125,8 @@ id_button_task_create_submit.onclick=async function () {
         // Parse the JSON data from the response
         const data = await response.json();
         if (data.statusCode != 200) {
-            id_task_update_error_message.textContent = 'Error updating task: non-200 response received...';
-            id_task_update_error_message.style.display = 'flex';
+            id_task_create_error_message.textContent = 'Error updating task: non-200 response received...';
+            id_task_create_error_message.style.display = 'flex';
             return;
         }
         close_popups()
