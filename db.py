@@ -13,9 +13,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 # pymongo variables:
 mongo_client = MongoClient()
-db_measurables = mongo_client['tv2_measurables']  # not in use yet
 db_notes = mongo_client['tv2_notes']
-db_tasks = mongo_client['tv2_tasks']  # not in use yet
+db_obss = mongo_client['tv2_obss']  # not in use yet
+db_tasks = mongo_client['tv2_tasks']
 db_users = mongo_client['tv2_users']
 c_users = db_users['users']
 
@@ -65,7 +65,6 @@ def note_delete(user_id_str: str, note_id_str: str):
         utility.log_write(str(e))
         return None
 
-
 # RETURN True if note updated || False if any errors encountered
 # confirmed working 24/11/12
 def note_update(user_id_str: str, note_obj: dict) -> bool:
@@ -108,7 +107,6 @@ def note_update(user_id_str: str, note_obj: dict) -> bool:
         utility.log_write(str(e))
         return False
 
-
 # RETURN None if error or no docs || list of all docs if exist
 # confirmed working 24/11/13
 def notes_get_all(user_id_str: str):
@@ -118,20 +116,136 @@ def notes_get_all(user_id_str: str):
         return list(response)
     return None
 
+def obs_create(user_id_str: str, obs_obj: dict):
+    try:
+        # first, prep insert object
+        now_time = datetime.now(timezone.utc)
+        obs_obj['dateCreated'] = now_time
+        obs_obj['obsLog'] = [
+            {
+                'logDate': datetime.now(timezone.utc),
+                'logCode': 0,
+                'logMessage': 'observable first created'
+            }
+        ]
+        obs_obj['recordedObss'] = []
+        obs_obj['tags'] = obs_obj['tags'].split(',')
+        # push to db
+        collection = db_obss[user_id_str]
+        response = collection.insert_one(obs_obj)
+        if response and response.acknowledged:
+            return response
+        raise Exception('unable to create observable in database...')
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+def obs_delete(user_id_str: str, obs_id_str: str):
+    try:
+        collection = db_obss[user_id_str]
+        response = collection.delete_one({'_id': ObjectId(obs_id_str)})
+        if response and response.acknowledged:
+            return response
+        raise Exception('unable to delete observable in database...')
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+
+# RETURN ???
+def obss_get_all(user_id_str: str):
+    collection = db_obss[user_id_str]
+    response = collection.find()
+    if response:
+        return list(response)
+    return None
+
+
+# RETURN ???
+def obs_observe(user_id_str: str, obs_obj: dict):
+    try:
+        print(obs_obj)
+        collection = db_obss[user_id_str]
+        # result = None
+        result = collection.update_one({'_id': ObjectId(obs_obj['id'])}, {
+            '$push': {'recordedObss': obs_obj }
+        })
+        if result.acknowledged:
+            return result
+        return None
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
+
+
+# RETURN
+# holy shit!
+def obs_observe_delete(user_id_str: str, id_and_date_str: str):
+    temp_array = id_and_date_str.split(',')
+    collection = db_obss[user_id_str]
+    result = collection.update_one({'_id': ObjectId(temp_array[0])}, {
+        '$pull': {'recordedObss': {'dateCreated': temp_array[1]}}
+    })
+    if result.acknowledged:
+        return result
+    return None
+
+
+# RETURNS
+def obs_rec_update(user_id_str: str, obs_obj: dict):
+    temp_date = obs_obj['originalDate']
+    del obs_obj['originalDate'] # remove from dictionary as only needed for query
+    collection = db_obss[user_id_str]
+    result = collection.update_one({"_id": ObjectId(obs_obj['id'])},
+                                   { "$set": { "recordedObss.$[elem]": obs_obj }},
+                                   array_filters=[{"elem.dateCreated": temp_date}])
+    if result.acknowledged and result.matched_count > 0:
+        return result
+    return None
+
+
+# RETURNS
+# NEED
+def obs_update(user_id_str: str, obs_obj: dict):
+    try:
+        collection = db_obss[user_id_str]
+        result = collection.update_one({'_id': ObjectId(obs_obj['_id'])}, {
+            '$set': {
+                'color': obs_obj['color'],
+                'description': obs_obj['description'],
+                'tags': obs_obj['tags'],
+                'text': obs_obj['text'],
+                'title': obs_obj['title']
+            },
+            '$push': {
+                'obsLog': {
+                    'logDate': datetime.now(timezone.utc),
+                    'logCode': 0,
+                    'logMessage': 'obs updated'
+                }
+            }
+        })
+        if result.acknowledged and result.matched_count > 0:
+            return result
+        return None
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return None
 
 # RETURN None if deleting recordedTask fails || update_one object if successful
 def t_delete(user_id_str: str, t_id_str: str):
     try:
-        print(t_id_str)
         collection = db_tasks[user_id_str]
         id_parts_array = t_id_str.split(',')  # main_task_id,original_date_start,original_date_end
-        print(id_parts_array)
         recorded_tasks = "recordedTasks"
         # first, try to update recordedTask if it exists
         result = collection.update_one({'_id': ObjectId(id_parts_array[0])},{
             "$pull": {recorded_tasks: {"id": t_id_str}}
         })
-        print(result)
         if result.acknowledged:
             return result
         return None
@@ -238,7 +352,6 @@ def task_create(id_str: str, task_obj: dict):
         utility.log_write(str(e))
         return None
 
-
 # RETURN None if deleting task fails || delete_one object if successful
 def task_delete(user_id_str: str, task_id_str: str):
     try:
@@ -251,7 +364,6 @@ def task_delete(user_id_str: str, task_id_str: str):
         print(str(e))
         utility.log_write(str(e))
         return None
-
 
 # RETURN True if task updated || False if any errors encountered
 # confirmed working 24/11/12
