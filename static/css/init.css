@@ -1,5 +1,5 @@
 body {
-    background-color: rgb(240, 240, 240);
+    /*background-color: rgb(240, 240, 240);*/
     height: 100%;
     width: 100%;
 }
@@ -18,6 +18,18 @@ body {
     justify-content: flex-end;
     margin-right: 10px;
     width: 100%;
+}
+.row10 {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    /*width: 100%;*/
+}
+.rrow10 {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 10px;
+    /*width: 100%;*/
 }
 #test_main {
     align-items: center;
