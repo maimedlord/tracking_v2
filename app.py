@@ -120,6 +120,12 @@ def notes():
     return render_template('notes.html')
 
 
+@app.route('/observables')
+@login_required
+def observables():
+    return render_template('observables.html')
+
+
 @app.route('/tasks')
 @login_required
 def tasks():
@@ -193,7 +199,7 @@ def api_note_create(note_obj):
 
 @app.route('/api/note_delete/<note_id>')
 @login_required
-def note_delete(note_id):
+def api_note_delete(note_id):
     try:
         response = db.note_delete(current_user.id_str, note_id)
         if response:
@@ -247,6 +253,148 @@ def api_notes_get_all():
         if isinstance(response, list):
             return json.dumps(http_204)
         # None indicates error
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+@app.route('/api/obs_create/<obs_obj>')
+@login_required
+def api_obs_create(obs_obj):
+    try:
+        print('obs_create: ' + obs_obj)
+        response = db.obs_create(current_user.id_str, json.loads(obs_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/obs_delete/<obs_id>')
+@login_required
+def api_obs_delete(obs_id):
+    try:
+        print('obs_delete: ' + obs_id)
+        response = db.obs_delete(current_user.id_str, obs_id)
+        return json.dumps({
+            'status': 'success',
+            'statusCode': 200,
+            'data': []
+        })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/observe_delete/<id_and_date_str>')
+@login_required
+def api_observe_delete(id_and_date_str):
+    try:
+        print('observe_delete: ' + id_and_date_str)
+        response = db.obs_observe_delete(current_user.id_str, id_and_date_str)
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/obs_observe/<obs_obj>')
+@login_required
+def api_obs_observe(obs_obj):
+    try:
+        print('obs_observe' + obs_obj)
+        response = db.obs_observe(current_user.id_str, json.loads(obs_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/obss_get_all')
+@login_required
+def api_obss_get_all():
+    try:
+        response = db.obss_get_all(current_user.id_str)
+        # if other than None or empty list response has notes
+        if response:
+            response = utility.convert_datetimes_to_string(response) # convert datetime to string recursively
+            response = utility.convert_objectids_to_string(response) # convert ObjectId to string recursively
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': response
+            })
+        # handle empty list
+        if isinstance(response, list):
+            return json.dumps(http_204)
+        # None indicates error
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/obs_rec_update/<obs_obj>')
+@login_required
+def api_obs_rec_update(obs_obj):
+    try:
+        print('obs_rec_update' + obs_obj)
+        response = db.obs_rec_update(current_user.id_str, json.loads(obs_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
+        return json.dumps(http_500)
+    except Exception as e:
+        print(str(e))
+        utility.log_write(str(e))
+        return json.dumps(http_500)
+
+
+@app.route('/api/obs_update/<obs_obj>')
+@login_required
+def api_obs_update(obs_obj):
+    try:
+        print('obs_update' + obs_obj)
+        response = db.obs_update(current_user.id_str, json.loads(obs_obj))
+        if response:
+            print(response)
+            return json.dumps({
+                'status': 'success',
+                'statusCode': 200,
+                'data': []
+            })
         return json.dumps(http_500)
     except Exception as e:
         print(str(e))
